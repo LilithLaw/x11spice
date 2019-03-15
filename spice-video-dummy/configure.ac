@@ -22,10 +22,10 @@
 
 # Initialize Autoconf
 AC_PREREQ([2.60])
-AC_INIT([xf86-video-dummy],
-        [0.3.8],
-        [https://gitlab.freedesktop.org/xorg/driver/xf86-video-dummy/issues],
-        [xf86-video-dummy])
+AC_INIT([spice-video-dummy],
+        [1.1],
+        [https://gitlab.freedesktop.org/spice/x11spice/issues],
+        [spice-video-dummy])
 AC_CONFIG_SRCDIR([Makefile.am])
 AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_AUX_DIR(.)
@@ -60,10 +60,6 @@ XORG_DRIVER_CHECK_EXT(RENDER, renderproto)
 PKG_CHECK_MODULES(XORG, [xorg-server >= 1.4.99.901] xproto fontsproto $REQUIRED_MODULES)
 
 # Checks for libraries.
-
-
-DRIVER_NAME=dummy
-AC_SUBST([DRIVER_NAME])
 
 AC_CONFIG_FILES([
                 Makefile

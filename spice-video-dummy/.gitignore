@@ -1,0 +1,9 @@
+config.h
+config.h.in
+libtool
+ltmain.sh
+stamp-h1
+src/.libs
+*.o
+*.lo
+*.la

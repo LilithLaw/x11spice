@@ -33,6 +33,8 @@
  * Driver data structures.
  */
 #include "dummy.h"
+#include <fcntl.h>
+#include <errno.h>
 
 /* These need to be checked */
 #include <X11/X.h>
@@ -62,8 +64,8 @@ static Bool dummyDriverFunc(ScrnInfoPtr pScrn, xorgDriverFuncOp op, pointer ptr)
 /* 				int PowerManagementMode, int flags); */
 
 #define DUMMY_VERSION 4000
-#define DUMMY_NAME "DUMMY"
-#define DUMMY_DRIVER_NAME "dummy"
+#define DUMMY_NAME "SPICEDUMMY"
+#define DUMMY_DRIVER_NAME "spicedummy"
 
 #define DUMMY_MAJOR_VERSION PACKAGE_VERSION_MAJOR
 #define DUMMY_MINOR_VERSION PACKAGE_VERSION_MINOR
@@ -99,16 +101,20 @@ _X_EXPORT DriverRec DUMMY = {
 };
 
 static SymTabRec DUMMYChipsets[] = {
-    {DUMMY_CHIP, "dummy"},
+    {DUMMY_CHIP, "spicedummy"},
     {-1, NULL}
 };
 
 typedef enum {
-    OPTION_SW_CURSOR
+    OPTION_SW_CURSOR,
+    OPTION_DEVICE_PATH,
+    OPTION_ACCEL_METHOD,
 } DUMMYOpts;
 
 static const OptionInfoRec DUMMYOptions[] = {
     {OPTION_SW_CURSOR, "SWcursor", OPTV_BOOLEAN, {0}, FALSE},
+    {OPTION_DEVICE_PATH, "kmsdev", OPTV_STRING, {0}, FALSE},
+    {OPTION_ACCEL_METHOD, "AccelMethod", OPTV_STRING, {0}, FALSE},
     {-1, NULL, OPTV_NONE, {0}, FALSE}
 };
 
@@ -117,7 +123,7 @@ static const OptionInfoRec DUMMYOptions[] = {
 static MODULESETUPPROTO(dummySetup);
 
 static XF86ModuleVersionInfo dummyVersRec = {
-    "dummy",
+    "spicedummy",
     MODULEVENDORSTRING,
     MODINFOSTRING1,
     MODINFOSTRING2,
@@ -133,7 +139,7 @@ static XF86ModuleVersionInfo dummyVersRec = {
  * This is the module init data.
  * Its name has to be the driver name followed by ModuleData
  */
-_X_EXPORT XF86ModuleData dummyModuleData = { &dummyVersRec, dummySetup, NULL };
+_X_EXPORT XF86ModuleData spicedummyModuleData = { &dummyVersRec, dummySetup, NULL };
 
 static pointer
 dummySetup(pointer module, pointer opts, int *errmaj, int *errmin)
@@ -204,7 +210,7 @@ DUMMYAvailableOptions(int chipid, int busid)
 static void
 DUMMYIdentify(int flags)
 {
-    xf86PrintChipsets(DUMMY_NAME, "Driver for Dummy chipsets", DUMMYChipsets);
+    xf86PrintChipsets(DUMMY_NAME, "Spice Driver for Dummy chipsets", DUMMYChipsets);
 }
 
 /* Mandatory */
@@ -258,6 +264,52 @@ DUMMYProbe(DriverPtr drv, int flags)
     free(devSections);
 
     return foundScreen;
+}
+
+static int
+dummy_open_render_node(const ScrnInfoRec * scrn)
+{
+    const DUMMYRec *dummy = scrn->driverPrivate;
+    const char *device_path;
+    int fd;
+
+    if (!(device_path = xf86GetOptValString(dummy->Options, OPTION_DEVICE_PATH))) {
+        device_path = "/dev/dri/renderD128";
+    }
+    if ((fd = open(device_path, O_RDWR, 0)) == -1) {
+        xf86DrvMsg(scrn->scrnIndex, X_ERROR, "open %s: %s\n", device_path, strerror(errno));
+    } else {
+        xf86DrvMsg(scrn->scrnIndex, X_CONFIG, "Using %s.\n", device_path);
+    }
+
+    return fd;
+}
+
+static Bool
+dummy_enable_glamor(ScrnInfoRec * scrn)
+{
+    const DUMMYRec *dummy = scrn->driverPrivate;
+    const char *accel_method;
+
+    if (((accel_method = xf86GetOptValString(dummy->Options, OPTION_ACCEL_METHOD))
+        && strcmp(accel_method, "glamor")) || dummy->fd == -1) {
+        xf86DrvMsg(scrn->scrnIndex, X_CONFIG, "Glamor disabled.\n");
+        return FALSE;
+    }
+
+    if (!xf86LoadSubModule(scrn, GLAMOR_EGL_MODULE_NAME)) {
+        xf86DrvMsg(scrn->scrnIndex, X_ERROR, "Failed to load glamor module.\n");
+        return FALSE;
+    }
+
+    if (!glamor_egl_init(scrn, dummy->fd)) {
+        xf86DrvMsg(scrn->scrnIndex, X_ERROR, "Glamor initialisation failed.\n");
+        return FALSE;
+    }
+
+    xf86DrvMsg(scrn->scrnIndex, X_INFO, "Glamor initialised.\n");
+
+    return TRUE;
 }
 
 #define RETURN \
@@ -358,6 +410,9 @@ DUMMYPreInit(ScrnInfoPtr pScrn, int flags)
     xf86ProcessOptions(pScrn->scrnIndex, pScrn->options, dPtr->Options);
 
     xf86GetOptValBool(dPtr->Options, OPTION_SW_CURSOR, &dPtr->swCursor);
+
+    dPtr->fd = dummy_open_render_node(pScrn);
+    dPtr->glamor = dummy_enable_glamor(pScrn);
 
     if (device->videoRam != 0) {
         pScrn->videoRam = device->videoRam;
@@ -563,6 +618,12 @@ DUMMYScreenInit(SCREEN_INIT_ARGS_DECL)
     /* must be after RGB ordering fixed */
     fbPictureInit(pScreen, 0, 0);
 
+    if (dPtr->glamor && !glamor_init(pScreen, GLAMOR_USE_EGL_SCREEN)) {
+        xf86DrvMsg(pScrn->scrnIndex, X_ERROR,
+                   "Failed to initialise glamor at ScreenInit() time.\n");
+        return FALSE;
+    }
+
     xf86SetBlackWhitePixels(pScreen);
 
     if (dPtr->swCursor) {
@@ -621,6 +682,16 @@ DUMMYScreenInit(SCREEN_INIT_ARGS_DECL)
     dPtr->CreateWindow = pScreen->CreateWindow;
     pScreen->CreateWindow = DUMMYCreateWindow;
 
+    if (dPtr->glamor) {
+        if (!dummy_dri2_screen_init(pScreen)) {
+            xf86DrvMsg(pScrn->scrnIndex, X_ERROR, "Failed to initialise the DRI2 extension.\n");
+        }
+
+        if (!dummy_present_screen_init(pScreen)) {
+            xf86DrvMsg(pScrn->scrnIndex, X_ERROR, "Failed to initialise the Present extension.\n");
+        }
+    }
+
     /* Report any unused options (only for the first generation) */
     if (serverGeneration == 1) {
         xf86ShowUnusedOptions(pScrn->scrnIndex, pScrn->options);
@@ -648,6 +719,10 @@ DUMMYCloseScreen(CLOSE_SCREEN_ARGS_DECL)
 {
     ScrnInfoPtr pScrn = xf86ScreenToScrn(pScreen);
     DUMMYPtr dPtr = DUMMYPTR(pScrn);
+
+    if (dPtr->glamor) {
+        dummy_dri2_close_screen(pScreen);
+    }
 
     free(pScreen->GetScreenPixmap(pScreen)->devPrivate.ptr);
 

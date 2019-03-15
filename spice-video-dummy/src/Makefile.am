@@ -27,13 +27,15 @@
 
 AM_CFLAGS = $(XORG_CFLAGS) $(PCIACCESS_CFLAGS)
 
-dummy_drv_la_LTLIBRARIES = dummy_drv.la
-dummy_drv_la_LDFLAGS = -module -avoid-version
-dummy_drv_la_LIBADD = $(XORG_LIBS)
-dummy_drv_ladir = @moduledir@/drivers
+spicedummy_drv_la_LTLIBRARIES = spicedummy_drv.la
+spicedummy_drv_la_LDFLAGS = -module -avoid-version
+spicedummy_drv_la_LIBADD = $(XORG_LIBS)
+spicedummy_drv_ladir = @moduledir@/drivers
 
-dummy_drv_la_SOURCES = \
+spicedummy_drv_la_SOURCES = \
          compat-api.h \
+         dri2.c \
          dummy_cursor.c \
-         dummy_driver.c \
-         dummy.h
+         spicedummy_driver.c \
+         dummy.h \
+         present.c
