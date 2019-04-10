@@ -17,6 +17,13 @@ PKG_CHECK_MODULES(PIXMAN, pixman-1)
 
 AM_CONDITIONAL([HAVE_GTEST], [pkg-config --atleast-version=2.38 glib-2.0])
 
+AC_ARG_ENABLE([dummy], AS_HELP_STRING([--enable-dummy], [Builds the spice-video-dummy driver]), [dummy=true])
+AM_CONDITIONAL([DUMMY], test x$dummy = xtrue)
+
+AS_IF([test "x$dummy" = "xtrue"], [
+  AC_CONFIG_SUBDIRS([spice-video-dummy])
+])
+
 AC_PROG_SED
 # To use gcov, make sure you have the appropriate autoconf macors,
 # and uncomment this line, and the matching one in src/Makefile.am.

@@ -75,6 +75,25 @@ password you can use to connect.
 
 Refer to the x11spice man page for more details.
 
+Spice Video Dummy Driver
+------------------------
+If you wish to create a 'headless' connection to a server - create an
+X session without using the main system display - there is a straight
+forward process that is now included with x11spice.
+
+That is, x11spice now optionally builds an Xorg driver that is based
+on the dummy driver and the modesetting driver.  This gives a virtual
+frame buffer driver which should include modern Mesa capabilities.
+
+To use this driver, simply add:
+
+  --enable-dummy
+
+to the configure line.  This will build the Xorg driver.  A simplistic
+example is included showing the general concepts of using this driver.
+Refer to the spice-video-dummy/spicedummy.sh bash script for more
+information.
+
 
 Using code coverage (gcov)
 -------------------------
