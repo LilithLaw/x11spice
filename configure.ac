@@ -25,7 +25,7 @@ AS_IF([test "x$dummy" = "xtrue"], [
 ])
 
 AC_PROG_SED
-# To use gcov, make sure you have the appropriate autoconf macors,
+# To use gcov, make sure you have the appropriate autoconf macros,
 # and uncomment this line, and the matching one in src/Makefile.am.
 #AX_CODE_COVERAGE()
 
