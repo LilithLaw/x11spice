@@ -5,21 +5,38 @@
 #   x11spice code largely conform to the Spice Project Coding Style.
 #   It's preserved here as a form of documentation.
 
+# Note: Spice is now relaxed about function declarations,
+#       and allow either style, e.g.
+#  char *func()  or
+#
+#  char *
+#  func()
+#   That requires calling indent with some thoughtfulness
+# By default, it will break procedure types onto newlines
+#   if you have a file that does not do that, you may want
+#   to add
+# --dont-break-procedure-type
+# to your invocation.
+
+
 if [ ! -f "$1" ] ; then
     echo Error: specify a filename to process with indent
+    echo Usage:
+    echo   'spice_indent <filename> [ extra-options ]'
     exit 1
 fi
+fname="$1"
+shift
 
-indent "$1" \
+indent "$fname" \
   --no-space-after-function-call-names \
-  --dont-break-procedure-type \
   --braces-after-func-def-line \
   --braces-on-if-line \
   --braces-on-struct-decl-line \
   --line-length 100 \
   --no-space-after-parentheses \
   --no-tabs \
-  --case-indentation 4 \
+  --case-indentation 0 \
   --tab-size 4\
   --indent-label 0\
   --indent-level 4\
@@ -28,6 +45,7 @@ indent "$1" \
   --space-after-while \
   --space-after-casts \
   --space-after-if \
+  --cuddle-else \
   -T agent_t \
   -T SpiceCharDeviceInstance \
   -T SpiceChannelEventInfo \
@@ -64,3 +82,5 @@ indent "$1" \
   -T xdummy_t \
   -T x11spice_server_t \
   -T test_t \
+  -T Bool \
+  "$@"

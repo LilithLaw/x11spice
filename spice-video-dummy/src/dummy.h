@@ -29,15 +29,13 @@ extern void DUMMYShowCursor(ScrnInfoPtr pScrn);
 extern void DUMMYHideCursor(ScrnInfoPtr pScrn);
 
 /* globals */
-typedef struct _color
-{
+typedef struct _color {
     int red;
     int green;
     int blue;
 } dummy_colors;
 
-typedef struct dummyRec 
-{
+typedef struct dummyRec {
     /* options */
     OptionInfoPtr Options;
     Bool swCursor;
@@ -50,10 +48,9 @@ typedef struct dummyRec
     int cursorFG, cursorBG;
 
     dummy_colors colors[1024];
-    Bool        (*CreateWindow)() ;     /* wrapped CreateWindow */
+    Bool (*CreateWindow)();    /* wrapped CreateWindow */
     Bool prop;
 } DUMMYRec, *DUMMYPtr;
 
 /* The privates of the DUMMY driver */
 #define DUMMYPTR(p)	((DUMMYPtr)((p)->driverPrivate))
-
