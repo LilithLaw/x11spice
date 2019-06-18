@@ -33,6 +33,10 @@
 #include <netdb.h>
 #include <spice/macros.h>
 
+/* Obtain definitions for PRIx64 */
+#define __STDC_FORMAT_MACROS 1
+#include <inttypes.h>
+
 #include "local_spice.h"
 #include "x11spice.h"
 #include "display.h"
@@ -255,7 +259,7 @@ static int get_command(QXLInstance *qin, struct QXLCommandExt *cmd)
     cmd->flags = 0;
     cmd->cmd.type = QXL_CMD_DRAW;
     cmd->cmd.padding = 0;
-    cmd->cmd.data = (QXLPHYSICAL) drawable;
+    cmd->cmd.data = (uintptr_t) drawable;
 
     return 1;
 }
@@ -273,7 +277,7 @@ static int req_cmd_notification(QXLInstance *qin)
 static void release_resource(QXLInstance *qin G_GNUC_UNUSED,
                              struct QXLReleaseInfoExt release_info)
 {
-    spice_free_release((spice_release_t *) release_info.info->id);
+    spice_free_release((spice_release_t *) (uintptr_t) release_info.info->id);
 }
 
 static int get_cursor_command(QXLInstance *qin, struct QXLCommandExt *cmd)
@@ -289,7 +293,7 @@ static int get_cursor_command(QXLInstance *qin, struct QXLCommandExt *cmd)
     cmd->flags = 0;
     cmd->cmd.type = QXL_CMD_CURSOR;
     cmd->cmd.padding = 0;
-    cmd->cmd.data = (QXLPHYSICAL) cursor;
+    cmd->cmd.data = (uintptr_t) cursor;
 
     return 1;
 }
@@ -318,8 +322,8 @@ static int flush_resources(QXLInstance *qin G_GNUC_UNUSED)
 
 static void async_complete(QXLInstance *qin G_GNUC_UNUSED, uint64_t cookie)
 {
-    g_debug("%s: cookie 0x%lx", __FUNCTION__, cookie);
-    spice_free_release((spice_release_t *) cookie);
+    g_debug("%s: cookie %#" PRIx64, __FUNCTION__, cookie);
+    spice_free_release((spice_release_t *) (uintptr_t) cookie);
 }
 
 static void update_area_complete(QXLInstance *qin G_GNUC_UNUSED,
@@ -463,7 +467,7 @@ static int send_monitors_config(spice_t *s, int w, int h)
     monitors->heads[0].width = w;
     monitors->heads[0].height = h;
 
-    spice_qxl_monitors_config_async(&s->display_sin, (QXLPHYSICAL) monitors, 0, (uint64_t) release);
+    spice_qxl_monitors_config_async(&s->display_sin, (uintptr_t) monitors, 0, (uintptr_t) release);
 
     return 0;
 }
@@ -487,7 +491,7 @@ int spice_create_primary(spice_t *s, int w, int h, int bytes_per_line, void *shm
 
     /* TODO - compute this dynamically */
     surface.format = SPICE_SURFACE_FMT_32_xRGB;
-    surface.mem = (QXLPHYSICAL) shmaddr;
+    surface.mem = (uintptr_t) shmaddr;
 
     s->width = w;
     s->height = h;

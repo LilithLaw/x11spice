@@ -70,7 +70,7 @@ static QXLDrawable *shm_image_to_drawable(spice_t *s, shm_image_t *shmi, int x, 
         return NULL;
     qxl_image = (QXLImage *) (drawable + 1);
 
-    drawable->release_info.id = (uint64_t) spice_create_release(s, RELEASE_SHMI, shmi);
+    drawable->release_info.id = (uintptr_t) spice_create_release(s, RELEASE_SHMI, shmi);
     shmi->drawable_ptr = drawable;
 
     drawable->surface_id = 0;
@@ -91,7 +91,7 @@ static QXLDrawable *shm_image_to_drawable(spice_t *s, shm_image_t *shmi, int x, 
     drawable->u.copy.src_area.bottom = shmi->h;
     drawable->u.copy.rop_descriptor = SPICE_ROPD_OP_PUT;
 
-    drawable->u.copy.src_bitmap = (QXLPHYSICAL) qxl_image;
+    drawable->u.copy.src_bitmap = (uintptr_t) qxl_image;
 
     qxl_image->descriptor.id = 0;
     qxl_image->descriptor.type = SPICE_IMAGE_TYPE_BITMAP;
@@ -106,7 +106,7 @@ static QXLDrawable *shm_image_to_drawable(spice_t *s, shm_image_t *shmi, int x, 
     qxl_image->bitmap.y = shmi->h;
     qxl_image->bitmap.stride = shmi->bytes_per_line;
     qxl_image->bitmap.palette = 0;
-    qxl_image->bitmap.data = (QXLPHYSICAL) shmi->shmaddr;
+    qxl_image->bitmap.data = (uintptr_t) shmi->shmaddr;
 
     return drawable;
 }

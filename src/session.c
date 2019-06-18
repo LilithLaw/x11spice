@@ -60,13 +60,13 @@ session_t *global_session = NULL;
 void free_cursor_queue_item(gpointer data)
 {
     QXLCursorCmd *ccmd = (QXLCursorCmd *) data;
-    spice_free_release((spice_release_t *) ccmd->release_info.id);
+    spice_free_release((spice_release_t *) (uintptr_t) ccmd->release_info.id);
 }
 
 void free_draw_queue_item(gpointer data)
 {
     QXLDrawable *drawable = (QXLDrawable *) data;
-    spice_free_release((spice_release_t *) drawable->release_info.id);
+    spice_free_release((spice_release_t *) (uintptr_t) drawable->release_info.id);
 }
 
 void *session_pop_draw(session_t *session)
@@ -407,10 +407,10 @@ int session_push_cursor_image(session_t *s,
     ccmd->type = QXL_CURSOR_SET;
     ccmd->u.set.position.x = x + xhot;
     ccmd->u.set.position.y = y + yhot;
-    ccmd->u.set.shape = (QXLPHYSICAL) cursor;
+    ccmd->u.set.shape = (uintptr_t) cursor;
     ccmd->u.set.visible = TRUE;
 
-    ccmd->release_info.id = (uint64_t) spice_create_release(&s->spice, RELEASE_MEMORY, ccmd);
+    ccmd->release_info.id = (uintptr_t) spice_create_release(&s->spice, RELEASE_MEMORY, ccmd);
 
     g_async_queue_push(s->cursor_queue, ccmd);
     spice_qxl_wakeup(&s->spice.display_sin);
