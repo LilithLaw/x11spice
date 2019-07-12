@@ -63,6 +63,8 @@ int main(int argc, char *argv[])
     int session_created = 0;
     int session_started = 0;
 
+    memset(&session, 0, sizeof(session));
+
     /*------------------------------------------------------------------------
     **  Parse arguments
     **----------------------------------------------------------------------*/
