@@ -82,6 +82,8 @@ int xcb_draw_grid(const char *display)
     xcb_gcontext_t red_fg;
     xcb_gcontext_t green_fg;
 
+    xcb_void_cookie_t cookie;
+
     xcb_rectangle_t red_rectangles[32];
     xcb_rectangle_t green_rectangles[32];
 
@@ -96,19 +98,24 @@ int xcb_draw_grid(const char *display)
     red_fg = xcb_generate_id(c);
     lookup_color(c, screen, "red", &pixels[0]);
     pixels[1] = 0;
-    xcb_create_gc(c, red_fg, screen->root, XCB_GC_FOREGROUND, pixels);
+    cookie = xcb_create_gc_checked(c, red_fg, screen->root, XCB_GC_FOREGROUND, pixels);
+    xcb_request_check(c, cookie);
 
     green_fg = xcb_generate_id(c);
     lookup_color(c, screen, "green", &pixels[0]);
     pixels[1] = 0;
-    xcb_create_gc(c, green_fg, screen->root, XCB_GC_FOREGROUND, pixels);
+    cookie = xcb_create_gc_checked(c, green_fg, screen->root, XCB_GC_FOREGROUND, pixels);
+    xcb_request_check(c, cookie);
 
     create_rectangles(red_rectangles, green_rectangles, screen->width_in_pixels,
                       screen->height_in_pixels);
 
     /* We draw the rectangles */
-    xcb_poly_fill_rectangle_checked(c, screen->root, red_fg, 32, red_rectangles);
-    xcb_poly_fill_rectangle_checked(c, screen->root, green_fg, 32, green_rectangles);
+    cookie = xcb_poly_fill_rectangle_checked(c, screen->root, red_fg, 32, red_rectangles);
+    xcb_request_check(c, cookie);
+
+    cookie = xcb_poly_fill_rectangle_checked(c, screen->root, green_fg, 32, green_rectangles);
+    xcb_request_check(c, cookie);
 
     /* We flush the request */
     xcb_flush(c);
