@@ -50,6 +50,17 @@ void options_init(options_t *options)
     memset(options, 0, sizeof(*options));
 }
 
+void ssl_options_free(ssl_options_t *ssl)
+{
+    g_free(ssl->ca_cert_file);
+    g_free(ssl->certs_file);
+    g_free(ssl->private_key_file);
+    g_free(ssl->key_password);
+    g_free(ssl->dh_key_file);
+    g_free(ssl->ciphersuite);
+    *ssl = (ssl_options_t) { 0 };
+}
+
 void options_free(options_t *options)
 {
     g_free(options->display);
@@ -57,8 +68,12 @@ void options_free(options_t *options)
     g_free(options->listen);
     options->listen = NULL;
 
+    ssl_options_free(&options->ssl);
+
     g_free(options->spice_password);
     options->spice_password = NULL;
+    g_free(options->password_file);
+    options->password_file = NULL;
 
     g_free(options->virtio_path);
     options->virtio_path = NULL;
