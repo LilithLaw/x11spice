@@ -147,10 +147,9 @@ void session_disconnect_client(session_t *session)
 int main(int argc, char *argv[])
 {
     gui_t gui;
-    session_t session;
+    session_t session = { 0 };
 
     setlocale(LC_ALL, "");
-    memset(&session, 0, sizeof(session));
     gui_create(&gui, &session, argc, argv);
     gui_run(&gui);
     gui_destroy(&gui);

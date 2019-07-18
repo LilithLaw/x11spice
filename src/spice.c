@@ -474,9 +474,8 @@ static int send_monitors_config(spice_t *s, int w, int h)
 
 int spice_create_primary(spice_t *s, int w, int h, int bytes_per_line, void *shmaddr)
 {
-    QXLDevSurfaceCreate surface;
+    QXLDevSurfaceCreate surface = { 0 };
 
-    memset(&surface, 0, sizeof(surface));
     surface.height = h;
     surface.width = w;
 

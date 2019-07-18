@@ -55,15 +55,13 @@ int main(int argc, char *argv[])
 {
     int rc;
 
-    session_t session;
+    session_t session = { 0 };
 
     int display_opened = 0;
     int spice_started = 0;
     int gui_created = 0;
     int session_created = 0;
     int session_started = 0;
-
-    memset(&session, 0, sizeof(session));
 
     /*------------------------------------------------------------------------
     **  Parse arguments

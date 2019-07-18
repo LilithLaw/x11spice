@@ -117,11 +117,10 @@ int listen_parse(const char *listen_spec, char **addr, int *port_start, int *por
 static int try_port(const char *addr, int port)
 {
     static const int on = 1, off = 0;
-    struct addrinfo ai, *res, *e;
+    struct addrinfo ai = { 0 }, *res, *e;
     char portbuf[33];
     int sock, rc;
 
-    memset(&ai, 0, sizeof(ai));
     ai.ai_flags = AI_PASSIVE | AI_ADDRCONFIG;
     ai.ai_socktype = SOCK_STREAM;
     ai.ai_family = 0;
