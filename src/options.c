@@ -52,10 +52,10 @@ void options_init(options_t *options)
 
 void options_free(options_t *options)
 {
-    if (options->display) {
-        free(options->display);
-        options->display = NULL;
-    }
+    g_free(options->display);
+    options->display = NULL;
+    g_free(options->listen);
+    options->listen = NULL;
 
     g_free(options->spice_password);
     options->spice_password = NULL;
@@ -68,10 +68,6 @@ void options_free(options_t *options)
     options->on_connect = NULL;
     g_free(options->on_disconnect);
     options->on_disconnect = NULL;
-
-    if (options->listen)
-        free(options->listen);
-    options->listen = NULL;
 
     g_free(options->user_config_file);
     options->user_config_file = NULL;
@@ -159,7 +155,7 @@ static void usage(char *argv0)
 int options_handle_ssl(options_t *options, const char *spec)
 {
     char *save = NULL;
-    char *in = strdup(spec);
+    char *in = g_strdup(spec);
     char *p;
     int i = 0;
     int rc = 0;
@@ -173,22 +169,22 @@ int options_handle_ssl(options_t *options, const char *spec)
 
         switch(i) {
             case 0:
-                options->ssl.ca_cert_file = strdup(p);
+                options->ssl.ca_cert_file = g_strdup(p);
                 break;
             case 1:
-                options->ssl.certs_file = strdup(p);
+                options->ssl.certs_file = g_strdup(p);
                 break;
             case 2:
-                options->ssl.private_key_file = strdup(p);
+                options->ssl.private_key_file = g_strdup(p);
                 break;
             case 3:
-                options->ssl.key_password = strdup(p);
+                options->ssl.key_password = g_strdup(p);
                 break;
             case 4:
-                options->ssl.dh_key_file = strdup(p);
+                options->ssl.dh_key_file = g_strdup(p);
                 break;
             case 5:
-                options->ssl.ciphersuite = strdup(p);
+                options->ssl.ciphersuite = g_strdup(p);
                 break;
             default:
                 fprintf(stderr, "Error: invalid ssl specification.");
@@ -197,7 +193,7 @@ int options_handle_ssl(options_t *options, const char *spec)
         }
     }
 
-    free(in);
+    g_free(in);
     return rc;
 }
 
@@ -218,7 +214,7 @@ void options_handle_user_config(int argc, char *argv[], options_t *options)
     int i;
     for (i = 1; i < argc - 1; i++)
         if (strcmp(argv[i], "--config") == 0 || strcmp(argv[i], "-config") == 0) {
-            options->user_config_file = strdup(argv[i + 1]);
+            options->user_config_file = g_strdup(argv[i + 1]);
             i++;
         }
 }
@@ -278,11 +274,11 @@ int options_parse_arguments(int argc, char *argv[], options_t *options)
                 break;
 
             case OPTION_PASSWORD:
-                options->spice_password = strdup(optarg);
+                options->spice_password = g_strdup(optarg);
                 break;
 
             case OPTION_PASSWORD_FILE:
-                options->password_file = strdup(optarg);
+                options->password_file = g_strdup(optarg);
                 break;
 
             case OPTION_CONFIG:
@@ -305,7 +301,7 @@ int options_parse_arguments(int argc, char *argv[], options_t *options)
                 break;
 
             case OPTION_DISPLAY:
-                options->display = strdup(optarg);
+                options->display = g_strdup(optarg);
                 break;
 
             case OPTION_MINIMIZE:
@@ -335,12 +331,12 @@ int options_parse_arguments(int argc, char *argv[], options_t *options)
     if (rc == 0) {
         if (optind >= argc) {
             /* Default */
-            options->listen = strdup("5900");
+            options->listen = g_strdup("5900");
         } else if (optind < (argc - 1)) {
             fprintf(stderr, "Error: too many arguments\n");
             rc = X11SPICE_ERR_BADARGS;
         } else {
-            options->listen = strdup(argv[optind]);
+            options->listen = g_strdup(argv[optind]);
         }
     }
 
@@ -434,7 +430,7 @@ static int process_password_file(options_t *options)
     if (p > buf && *(p - 1) == '\n')
         *(p - 1) = '\0';
 
-    options->spice_password = strdup(buf);
+    options->spice_password = g_strdup(buf);
 
     return rc;
 }
@@ -449,9 +445,7 @@ static int generate_password(options_t *options)
     if (fd < 0)
         return X11SPICE_ERR_OPEN;
 
-    p = options->spice_password = malloc(options->generate_password + 1);
-    if (!p)
-        return X11SPICE_ERR_MALLOC;
+    p = options->spice_password = g_malloc(options->generate_password + 1);
 
     while (p - options->spice_password < options->generate_password) {
         rc = read(fd, p, sizeof(*p));
