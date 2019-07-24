@@ -327,7 +327,9 @@ static int options_parse_arguments(int argc, char *argv[], options_t *options)
     if (rc == 0) {
         if (optind >= argc) {
             /* Default */
-            str_replace(&options->listen, "5900");
+            if (options->listen == NULL) {
+                str_replace(&options->listen, "5900");
+            }
         } else if (optind < (argc - 1)) {
             fprintf(stderr, "Error: too many arguments\n");
             rc = X11SPICE_ERR_BADARGS;
