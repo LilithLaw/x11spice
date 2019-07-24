@@ -45,54 +45,46 @@
 #include <libaudit.h>
 #endif
 
+static void str_replace(char **dest, const char *src)
+{
+    g_free(*dest);
+    *dest = src ? g_strdup(src) : NULL;
+}
+
 void options_init(options_t *options)
 {
     memset(options, 0, sizeof(*options));
 }
 
-void ssl_options_free(ssl_options_t *ssl)
+static void ssl_options_free(ssl_options_t *ssl)
 {
-    g_free(ssl->ca_cert_file);
-    g_free(ssl->certs_file);
-    g_free(ssl->private_key_file);
-    g_free(ssl->key_password);
-    g_free(ssl->dh_key_file);
-    g_free(ssl->ciphersuite);
-    *ssl = (ssl_options_t) { 0 };
+    str_replace(&ssl->ca_cert_file, NULL);
+    str_replace(&ssl->certs_file, NULL);
+    str_replace(&ssl->private_key_file, NULL);
+    str_replace(&ssl->key_password, NULL);
+    str_replace(&ssl->dh_key_file, NULL);
+    str_replace(&ssl->ciphersuite, NULL);
 }
 
 void options_free(options_t *options)
 {
-    g_free(options->display);
-    options->display = NULL;
-    g_free(options->listen);
-    options->listen = NULL;
+    str_replace(&options->display, NULL);
+    str_replace(&options->listen, NULL);
 
     ssl_options_free(&options->ssl);
+    str_replace(&options->spice_password, NULL);
+    str_replace(&options->password_file, NULL);
 
-    g_free(options->spice_password);
-    options->spice_password = NULL;
-    g_free(options->password_file);
-    options->password_file = NULL;
-
-    g_free(options->virtio_path);
-    options->virtio_path = NULL;
-    g_free(options->uinput_path);
-    options->uinput_path = NULL;
-    g_free(options->on_connect);
-    options->on_connect = NULL;
-    g_free(options->on_disconnect);
-    options->on_disconnect = NULL;
-
-    g_free(options->user_config_file);
-    options->user_config_file = NULL;
-
-    g_free(options->system_config_file);
-    options->system_config_file = NULL;
+    str_replace(&options->virtio_path, NULL);
+    str_replace(&options->uinput_path, NULL);
+    str_replace(&options->on_connect, NULL);
+    str_replace(&options->on_disconnect, NULL);
+    str_replace(&options->user_config_file, NULL);
+    str_replace(&options->system_config_file, NULL);
 }
 
 
-static gchar *string_option(GKeyFile *u, GKeyFile *s, const gchar *section, const gchar *key)
+static void string_option(gchar **dest, GKeyFile *u, GKeyFile *s, const gchar *section, const gchar *key)
 {
     gchar *ret = NULL;
     GError *error = NULL;
@@ -104,7 +96,8 @@ static gchar *string_option(GKeyFile *u, GKeyFile *s, const gchar *section, cons
     if (error)
         g_error_free(error);
 
-    return ret;
+    g_free(*dest);
+    *dest = ret;
 }
 
 static gint int_option(GKeyFile *u, GKeyFile *s, const gchar *section, const gchar *key)
@@ -175,31 +168,28 @@ int options_handle_ssl(options_t *options, const char *spec)
     int i = 0;
     int rc = 0;
 
-    if (!in)
-        return X11SPICE_ERR_MALLOC;
-
     for (p = strtok_r(in, ",", &save); p; p = strtok_r(NULL, ",", &save), i++) {
         if (strlen(p) == 0)
             continue;
 
         switch(i) {
             case 0:
-                options->ssl.ca_cert_file = g_strdup(p);
+                str_replace(&options->ssl.ca_cert_file, p);
                 break;
             case 1:
-                options->ssl.certs_file = g_strdup(p);
+                str_replace(&options->ssl.certs_file, p);
                 break;
             case 2:
-                options->ssl.private_key_file = g_strdup(p);
+                str_replace(&options->ssl.private_key_file, p);
                 break;
             case 3:
-                options->ssl.key_password = g_strdup(p);
+                str_replace(&options->ssl.key_password, p);
                 break;
             case 4:
-                options->ssl.dh_key_file = g_strdup(p);
+                str_replace(&options->ssl.dh_key_file, p);
                 break;
             case 5:
-                options->ssl.ciphersuite = g_strdup(p);
+                str_replace(&options->ssl.ciphersuite, p);
                 break;
             default:
                 fprintf(stderr, "Error: invalid ssl specification.");
@@ -216,12 +206,12 @@ void options_handle_ssl_file_options(options_t *options,
                                      GKeyFile *userkey, GKeyFile *systemkey)
 {
     options->ssl.enabled = bool_option(userkey, systemkey, "ssl", "enabled");
-    options->ssl.ca_cert_file = string_option(userkey, systemkey, "ssl", "ca-cert-file");
-    options->ssl.certs_file = string_option(userkey, systemkey, "ssl", "certs-file");
-    options->ssl.private_key_file = string_option(userkey, systemkey, "ssl", "private-key-file");
-    options->ssl.key_password = string_option(userkey, systemkey, "ssl", "key-password-file");
-    options->ssl.dh_key_file = string_option(userkey, systemkey, "ssl", "dh-key-file");
-    options->ssl.ciphersuite = string_option(userkey, systemkey, "ssl", "ciphersuite");
+    string_option(&options->ssl.ca_cert_file, userkey, systemkey, "ssl", "ca-cert-file");
+    string_option(&options->ssl.certs_file, userkey, systemkey, "ssl", "certs-file");
+    string_option(&options->ssl.private_key_file, userkey, systemkey, "ssl", "private-key-file");
+    string_option(&options->ssl.key_password, userkey, systemkey, "ssl", "key-password-file");
+    string_option(&options->ssl.dh_key_file, userkey, systemkey, "ssl", "dh-key-file");
+    string_option(&options->ssl.ciphersuite, userkey, systemkey, "ssl", "ciphersuite");
 }
 
 void options_handle_user_config(int argc, char *argv[], options_t *options)
@@ -289,15 +279,15 @@ int options_parse_arguments(int argc, char *argv[], options_t *options)
                 break;
 
             case OPTION_PASSWORD:
-                options->spice_password = g_strdup(optarg);
+                str_replace(&options->spice_password, optarg);
                 break;
 
             case OPTION_PASSWORD_FILE:
-                options->password_file = g_strdup(optarg);
+                str_replace(&options->password_file, optarg);
                 break;
 
             case OPTION_CONFIG:
-                /* This was handled previously; we can ignore */
+                str_replace(&options->user_config_file, optarg);
                 break;
 
             case OPTION_SSL:
@@ -316,7 +306,7 @@ int options_parse_arguments(int argc, char *argv[], options_t *options)
                 break;
 
             case OPTION_DISPLAY:
-                options->display = g_strdup(optarg);
+                str_replace(&options->display, optarg);
                 break;
 
             case OPTION_MINIMIZE:
@@ -346,12 +336,12 @@ int options_parse_arguments(int argc, char *argv[], options_t *options)
     if (rc == 0) {
         if (optind >= argc) {
             /* Default */
-            options->listen = g_strdup("5900");
+            str_replace(&options->listen, "5900");
         } else if (optind < (argc - 1)) {
             fprintf(stderr, "Error: too many arguments\n");
             rc = X11SPICE_ERR_BADARGS;
         } else {
-            options->listen = g_strdup(argv[optind]);
+            str_replace(&options->listen, argv[optind]);
         }
     }
 
@@ -386,17 +376,17 @@ void options_from_config(options_t *options)
     options->allow_control = bool_option(userkey, systemkey, "spice", "allow-control");
     options->generate_password = int_option(userkey, systemkey, "spice", "generate-password");
     options->hide = bool_option(userkey, systemkey, "spice", "hide");
-    options->display = string_option(userkey, systemkey, "spice", "display");
+    string_option(&options->display, userkey, systemkey, "spice", "display");
 
-    options->listen = string_option(userkey, systemkey, "spice", "listen");
-    options->spice_password = string_option(userkey, systemkey, "spice", "password");
-    options->password_file = string_option(userkey, systemkey, "spice", "password-file");
+    string_option(&options->listen, userkey, systemkey, "spice", "listen");
+    string_option(&options->spice_password, userkey, systemkey, "spice", "password");
+    string_option(&options->password_file, userkey, systemkey, "spice", "password-file");
     options->disable_ticketing = bool_option(userkey, systemkey, "spice", "disable-ticketing");
     options->exit_on_disconnect = bool_option(userkey, systemkey, "spice", "exit-on-disconnect");
-    options->virtio_path = string_option(userkey, systemkey, "spice", "virtio-path");
-    options->uinput_path = string_option(userkey, systemkey, "spice", "uinput-path");
-    options->on_connect = string_option(userkey, systemkey, "spice", "on-connect");
-    options->on_disconnect = string_option(userkey, systemkey, "spice", "on-disconnect");
+    string_option(&options->virtio_path, userkey, systemkey, "spice", "virtio-path");
+    string_option(&options->uinput_path, userkey, systemkey, "spice", "uinput-path");
+    string_option(&options->on_connect, userkey, systemkey, "spice", "on-connect");
+    string_option(&options->on_disconnect, userkey, systemkey, "spice", "on-disconnect");
     options->audit = bool_option(userkey, systemkey, "spice", "audit");
     options->audit_message_type = int_option(userkey, systemkey, "spice", "audit-message-type");
 
@@ -445,7 +435,7 @@ static int process_password_file(options_t *options)
     if (p > buf && *(p - 1) == '\n')
         *(p - 1) = '\0';
 
-    options->spice_password = g_strdup(buf);
+    str_replace(&options->spice_password, buf);
 
     return rc;
 }
