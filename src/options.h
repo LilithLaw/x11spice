@@ -65,7 +65,6 @@ typedef struct {
 
     /* file names of config files */
     char *user_config_file;
-    char *system_config_file;
 } options_t;
 
 

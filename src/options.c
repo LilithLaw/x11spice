@@ -80,7 +80,6 @@ void options_free(options_t *options)
     str_replace(&options->on_connect, NULL);
     str_replace(&options->on_disconnect, NULL);
     str_replace(&options->user_config_file, NULL);
-    str_replace(&options->system_config_file, NULL);
 }
 
 
@@ -353,7 +352,7 @@ static void options_from_config(options_t *options)
         systemkey = g_key_file_new();
         if (!g_key_file_load_from_dirs(systemkey, "x11spice/x11spice.conf",
                                        (const char **) g_get_system_config_dirs(),
-                                       &options->system_config_file, G_KEY_FILE_NONE, NULL)) {
+                                       NULL, G_KEY_FILE_NONE, NULL)) {
             g_key_file_free(systemkey);
             systemkey = NULL;
         }
