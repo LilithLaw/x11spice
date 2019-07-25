@@ -160,7 +160,7 @@ static void usage(char *argv0)
     printf("%s [--minimize]\n", indent);
 }
 
-int options_handle_ssl(options_t *options, const char *spec)
+static int options_handle_ssl(options_t *options, const char *spec)
 {
     char *save = NULL;
     char *in = g_strdup(spec);
@@ -202,7 +202,7 @@ int options_handle_ssl(options_t *options, const char *spec)
     return rc;
 }
 
-void options_handle_ssl_file_options(options_t *options,
+static void options_handle_ssl_file_options(options_t *options,
                                      GKeyFile *userkey, GKeyFile *systemkey)
 {
     options->ssl.enabled = bool_option(userkey, systemkey, "ssl", "enabled");
@@ -214,17 +214,7 @@ void options_handle_ssl_file_options(options_t *options,
     string_option(&options->ssl.ciphersuite, userkey, systemkey, "ssl", "ciphersuite");
 }
 
-void options_handle_user_config(int argc, char *argv[], options_t *options)
-{
-    int i;
-    for (i = 1; i < argc - 1; i++)
-        if (strcmp(argv[i], "--config") == 0 || strcmp(argv[i], "-config") == 0) {
-            options->user_config_file = g_strdup(argv[i + 1]);
-            i++;
-        }
-}
-
-int options_parse_arguments(int argc, char *argv[], options_t *options)
+static int options_parse_arguments(int argc, char *argv[], options_t *options)
 {
     int rc;
     int longindex = 0;
@@ -254,6 +244,7 @@ int options_parse_arguments(int argc, char *argv[], options_t *options)
         {0, 0, 0, 0}
     };
 
+    optind = 1; /* Allow reuse of this function */
     while (1) {
         rc = getopt_long_only(argc, argv, "", long_options, &longindex);
         if (rc == -1) {
@@ -348,7 +339,7 @@ int options_parse_arguments(int argc, char *argv[], options_t *options)
     return rc;
 }
 
-void options_from_config(options_t *options)
+static void options_from_config(options_t *options)
 {
     GKeyFile *userkey = g_key_file_new();
     GKeyFile *systemkey = NULL;
@@ -467,7 +458,7 @@ static int generate_password(options_t *options)
     return 0;
 }
 
-int options_process_io(options_t *options)
+static int options_process_io(options_t *options)
 {
     int rc;
     if (options->password_file) {
@@ -487,6 +478,23 @@ int options_process_io(options_t *options)
     return 0;
 }
 
+int options_load(options_t *options, int argc, char *argv[])
+{
+    int rc;
+
+    rc = options_parse_arguments(argc, argv, options);
+    if (rc == 0) {
+        options_from_config(options);
+        /* We parse command line arguments a second time to ensure
+        **  that command line options take precedence over config files */
+        rc = options_parse_arguments(argc, argv, options);
+        if (rc == 0)
+            rc = options_process_io(options);
+    }
+    return rc;
+}
+
+
 int options_impossible_config(options_t *options)
 {
     if (options->spice_password)
@@ -500,16 +508,3 @@ int options_impossible_config(options_t *options)
 
     return 1;
 }
-
-#if defined(OPTIONS_MAIN)
-int main(int argc, char *argv[])
-{
-    options_t options;
-
-    options_init(&options);
-    options_parse_arguments(argc, argv, &options);
-    options_from_config(&options);
-    g_message("Options parsed");
-    options_free(&options);
-}
-#endif
