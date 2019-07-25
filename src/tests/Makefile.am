@@ -16,6 +16,11 @@ x11spice_test_SOURCES = \
     util.h \
     main.c
 
+TESTS += options_test
+options_test_CPPFLAGS = -I$(top_srcdir)/src
+options_test_LDADD = $(GLIB2_LIBS)
+options_test_SOURCES = options_test.c ../options.c
+
 noinst_PROGRAMS = $(TESTS)
 
 .PHONY: leakcheck.log callgrind.out.x
