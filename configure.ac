@@ -1,5 +1,9 @@
 AC_INIT([x11spice], 1.1)
 AM_INIT_AUTOMAKE([subdir-objects])
+AC_CONFIG_HEADERS([src/config.h])
+
+AC_CHECK_HEADERS(sys/inotify.h)
+AC_CHECK_FUNCS(inotify_init1)
 
 PKG_CHECK_MODULES(XCB, xcb)
 PKG_CHECK_MODULES(DAMAGE, xcb-damage)

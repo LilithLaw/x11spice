@@ -382,6 +382,8 @@ static void options_from_config(options_t *options)
     options->audit = bool_option(userkey, systemkey, "spice", "audit");
     options->audit_message_type = int_option(userkey, systemkey, "spice", "audit-message-type");
 
+    string_option(&options->playback_fifo_dir, userkey, systemkey, "spice", "playback-fifo-dir");
+
 #if defined(HAVE_LIBAUDIT_H)
     /* Pick an arbitrary default in the user range.  CodeWeavers was founed in 1996, so 1196 it is... */
     if (options->audit_message_type == 0)

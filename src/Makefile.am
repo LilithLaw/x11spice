@@ -11,6 +11,8 @@ x11spice_LDADD = $(ALL_XCB_LIBS) $(GTK_LIBS) $(SPICE_LIBS) $(GLIB2_LIBS) $(PIXMA
 x11spice_SOURCES = \
     agent.c \
     agent.h \
+    audio.c \
+    audio.h \
     display.c \
     display.h \
     listen.c \

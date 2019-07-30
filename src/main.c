@@ -37,6 +37,7 @@
 #include "agent.h"
 #include "gui.h"
 #include "session.h"
+#include "audio.h"
 
 
 static void sigterm_handler(int arg G_GNUC_UNUSED)
@@ -62,6 +63,7 @@ int main(int argc, char *argv[])
     int gui_created = 0;
     int session_created = 0;
     int session_started = 0;
+    int audio_started = 0;
 
     /*------------------------------------------------------------------------
     **  Parse arguments
@@ -115,6 +117,12 @@ int main(int argc, char *argv[])
     agent_start(&session.spice, &session.options, &session.agent);
 
     /*------------------------------------------------------------------------
+    **  Process audio; this is optional
+    **----------------------------------------------------------------------*/
+    if (audio_begin(&session) == 0)
+        audio_started = 1;
+
+    /*------------------------------------------------------------------------
     **  Start our session and leave the GUI running until we have
     **   a reason to quit
     **----------------------------------------------------------------------*/
@@ -142,6 +150,10 @@ int main(int argc, char *argv[])
 exit:
     if (session_started)
         session_end(&session);
+
+    if (audio_started) {
+        audio_end(&session);
+    }
 
     if (spice_started) {
         agent_stop(&session.agent);

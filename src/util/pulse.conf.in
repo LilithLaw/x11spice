@@ -1,0 +1,2 @@
+default-sink = fifo
+daemon-binary = _X11SPICE_PULSEDIR_/x11spice-pulseaudio.sh

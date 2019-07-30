@@ -62,6 +62,7 @@ typedef struct {
     char *on_disconnect;
     int audit;
     int audit_message_type;
+    char *playback_fifo_dir;
 
     /* file names of config files */
     char *user_config_file;

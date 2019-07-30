@@ -569,12 +569,20 @@ void initialize_spice_instance(spice_t *s)
         .buttons = tablet_buttons,
     };
 
+    static const SpicePlaybackInterface playback_sif = {
+        .base.type = SPICE_INTERFACE_PLAYBACK,
+        .base.description = "playback",
+        .base.major_version = SPICE_INTERFACE_PLAYBACK_MAJOR,
+        .base.minor_version = SPICE_INTERFACE_PLAYBACK_MINOR,
+    };
+
     s->core = &core;
     s->display_sin.base.sif = &display_sif.base;
     s->display_sin.id = id++;
 
     s->keyboard_sin.base.sif = &keyboard_sif.base;
     s->tablet_sin.base.sif = &tablet_sif.base;
+    s->playback_sin.base.sif = &playback_sif.base;
 
 }
 

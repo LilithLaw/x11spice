@@ -47,6 +47,9 @@ typedef struct {
 
     int compression_level;
 
+    SpicePlaybackInstance playback_sin;
+    void *playback_opaque;
+
     struct session_struct *session;
 } spice_t;
 

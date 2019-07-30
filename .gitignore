@@ -34,3 +34,4 @@ x11spice-1.0-coverage*
 callgrind.out.*
 
 *.tar.gz
+src/config.h
