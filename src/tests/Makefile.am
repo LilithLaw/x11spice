@@ -18,6 +18,11 @@ x11spice_test_SOURCES = \
 
 x11spice_test_CPPFLAGS = -DPATH_TO_TEST_SRC=\"$(abs_srcdir)\"
 
+# Instruct the xdummy utility where to find the spice-video-driver library
+if DUMMY
+x11spice_test_CPPFLAGS += -DSPICEDUMMY=\"$(abs_top_builddir)/spice-video-dummy/src/.libs\"
+endif
+
 TESTS += options_test
 options_test_CPPFLAGS = -I$(top_srcdir)/src
 options_test_LDADD = $(GLIB2_LIBS)

@@ -30,6 +30,7 @@
 #include <sys/wait.h>
 #include <signal.h>
 #include <fcntl.h>
+#include <ctype.h>
 
 
 #include "xdummy.h"
@@ -76,7 +77,11 @@ static void write_xorg_conf(FILE * fp, xdummy_t *server)
             "EndSection\n"
             "Section \"Device\"\n"
             "  Identifier \"dummy_videocard\"\n"
+#if defined(SPICEDUMMY)
+            "  Driver \"spicedummy\"\n"
+#else
             "  Driver \"dummy\"\n"
+#endif
             "  VideoRam %ld\n"
             "EndSection\n"
             "\n"
@@ -87,6 +92,7 @@ static void write_xorg_conf(FILE * fp, xdummy_t *server)
             "  DefaultDepth 24\n"
             "SubSection \"Display\"\n"
             "  Modes %s\n"
+            "  Virtual %s\n"
             "EndSubSection\n"
             "EndSection\n"
             "\n"
@@ -95,7 +101,7 @@ static void write_xorg_conf(FILE * fp, xdummy_t *server)
             "  Screen       \"dummy_screen\"\n"
             "  InputDevice  \"dummy_mouse\"\n"
             "  InputDevice  \"dummy_keyboard\"\n"
-            "EndSection\n", server->desired_vram, server->modes);
+            "EndSection\n", server->desired_vram, server->modes, server->vmode);
 }
 
 static int generate_paths(xdummy_t *server, gconstpointer user_data)
@@ -136,11 +142,61 @@ static int generate_paths(xdummy_t *server, gconstpointer user_data)
     return 0;
 }
 
+static void get_module_paths(const char *xorg_binary, char *module_paths, int size)
+{
+    int pipes[2];
+    int rc;
+    int pid;
+    char *p;
+
+    memset(module_paths, 0, size);
+#if defined(SPICEDUMMY)
+    strncpy(module_paths, SPICEDUMMY, size - 1);
+    module_paths += strlen(module_paths);
+    size -= strlen(module_paths);
+#endif
+
+    /* We invoke Xorg -showDefaultModulePath, which frustratingly
+       writes the path we crave to stderr.  Because of the stderr
+       requirement, we need to manage file handles manually instead
+       of using popen() */
+    if (pipe(pipes) == 0) {
+        pid = fork();
+        if (pid == 0) {
+            close(pipes[0]);
+            dup2(pipes[1], STDERR_FILENO);
+            close(pipes[1]);
+            execlp(xorg_binary, xorg_binary, "-showDefaultModulePath", NULL);
+            exit(0);
+        }
+        else {
+            waitpid(pid, NULL, 0);
+            rc = read(pipes[0], module_paths, size - 2);
+            if (rc > 0) {
+                for (p = module_paths + rc - 1; p >= module_paths && isspace(*p); p--)
+                    *p = '\0';
+                /* Don't use bogus paths or errors masquerading as paths */
+                if (access(module_paths, X_OK) != 0)
+                    *module_paths = 0;
+
+#if defined(SPICEDUMMY)
+                /* Comma separate multiple directories */
+                memmove(module_paths + 1, module_paths, rc);
+                *module_paths = ',';
+#endif
+            }
+            close(pipes[0]);
+            close(pipes[1]);
+        }
+    }
+}
+
 static int exec_xorg(xdummy_t *server, gconstpointer user_data G_GNUC_UNUSED)
 {
     FILE *fp;
     char fdbuf[100];
     char xorg_binary[100];
+    char module_paths[4096];
 
     fp = fopen(server->xorg_fname, "w");
     if (!fp)
@@ -160,8 +216,11 @@ static int exec_xorg(xdummy_t *server, gconstpointer user_data G_GNUC_UNUSED)
     else if (access("/usr/lib/xorg/Xorg", X_OK) == 0)
         strcpy(xorg_binary, "/usr/lib/xorg/Xorg");
 
+    get_module_paths(xorg_binary, module_paths, sizeof(module_paths));
+
     return execlp(xorg_binary, xorg_binary, "-ac",
                   "-config", server->xorg_fname,
+                  "-modulepath", module_paths,
                   "-logfile", server->logfile, "-displayfd", fdbuf, NULL);
 }
 
@@ -169,15 +228,18 @@ static void configure_xorg_parameters(xdummy_t *server, gconstpointer user_data)
 {
     server->desired_vram = ((1024 * 768 * 4) + 1023)/ 1024;
     server->modes = "\"1024x768\"";
+    server->vmode = "1024 768";
 
     if (strcmp(user_data , "resize") == 0) {
         server->desired_vram = ((1920 * 1080 * 4) + 1023) / 1024;
         server->modes = "\"1920x1080\"";
+        server->vmode = "1920 1080";
     }
 
     if (strlen(user_data) > 7 && memcmp(user_data, "client_", 7) == 0) {
         server->desired_vram = ((1280 * 1024 * 4) + 1023) / 1024;
         server->modes = "\"1280x1024\"";
+        server->vmode = "1280 1024";
     }
 }
 

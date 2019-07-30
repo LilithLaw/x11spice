@@ -31,6 +31,7 @@ typedef struct {
     int pipe;
     long desired_vram;
     gchar *modes;
+    gchar *vmode;
     gboolean running;
     gchar *xorg_fname;
     gchar *logfile;
