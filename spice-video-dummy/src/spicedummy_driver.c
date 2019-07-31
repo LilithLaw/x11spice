@@ -558,6 +558,19 @@ DUMMYScreenInit(SCREEN_INIT_ARGS_DECL)
     int ret;
     VisualPtr visual;
     void *pixels;
+    int glamor_flags = GLAMOR_USE_EGL_SCREEN;
+
+    /* In Xorg 1.18, X changed so that GLAMOR_USE_EGL_SCREEN was the only
+       flag required and it implies the behavior previously requested
+       with the GLAMOR_USE_SCREEN and GLAMORE_USE_PICTURE_SCREEN flags.
+       Thus, if we are building against an older Xorg, we need to specify
+       those now deprecated flags. */
+#if defined(GLAMOR_USE_SCREEN)
+    glamor_flags |= GLAMOR_USE_SCREEN;
+#endif
+#if defined(GLAMOR_USE_PICTURE_SCREEN)
+    glamor_flags |= GLAMOR_USE_PICTURE_SCREEN;
+#endif
 
     /*
      * we need to get the ScrnInfoRec for this screen, so let's allocate
@@ -618,7 +631,7 @@ DUMMYScreenInit(SCREEN_INIT_ARGS_DECL)
     /* must be after RGB ordering fixed */
     fbPictureInit(pScreen, 0, 0);
 
-    if (dPtr->glamor && !glamor_init(pScreen, GLAMOR_USE_EGL_SCREEN)) {
+    if (dPtr->glamor && !glamor_init(pScreen, glamor_flags)) {
         xf86DrvMsg(pScrn->scrnIndex, X_ERROR,
                    "Failed to initialise glamor at ScreenInit() time.\n");
         return FALSE;

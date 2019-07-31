@@ -11,10 +11,10 @@
 #endif
 #include <string.h>
 
-#include "compat-api.h"
-
 #define GLAMOR_FOR_XORG 1
 #include "glamor.h"
+
+#include "compat-api.h"
 
 /* Supported chipsets */
 typedef enum {
