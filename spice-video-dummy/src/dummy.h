@@ -10,6 +10,7 @@
 #include <X11/extensions/Xv.h>
 #endif
 #include <string.h>
+#include <time.h>
 
 #define GLAMOR_FOR_XORG 1
 #include "glamor.h"
