@@ -157,6 +157,8 @@ static int exec_xorg(xdummy_t *server, gconstpointer user_data G_GNUC_UNUSED)
     strcpy(xorg_binary, "Xorg");
     if (access("/usr/libexec/Xorg", X_OK) == 0)
         strcpy(xorg_binary, "/usr/libexec/Xorg");
+    else if (access("/usr/lib/xorg/Xorg", X_OK) == 0)
+        strcpy(xorg_binary, "/usr/lib/xorg/Xorg");
 
     return execlp(xorg_binary, xorg_binary, "-ac",
                   "-config", server->xorg_fname,
