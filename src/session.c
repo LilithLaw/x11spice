@@ -352,7 +352,7 @@ int session_recreate_primary(session_t *s)
 
     rc = display_create_screen_images(&s->display);
     if (rc == 0) {
-        shm_image_t *f = s->display.fullscreen;
+        shm_image_t *f = s->display.primary;
         rc = spice_create_primary(&s->spice, f->w, f->h, f->bytes_per_line, f->shmaddr);
     }
 

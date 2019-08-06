@@ -461,12 +461,25 @@ void destroy_shm_image(display_t *d, shm_image_t *shmi)
 
 int display_create_screen_images(display_t *d)
 {
-    d->fullscreen = create_shm_image(d, 0, 0);
-    if (!d->fullscreen)
+    /* 'primary' and 'fullscreen' don't need to be SHM, normal buffers would work
+     * fine. Using SHM for all buffers is simpler though, and has no real downsides.
+     */
+    d->primary = create_shm_image(d, 0, 0);
+    if (!d->primary) {
         return X11SPICE_ERR_NOSHM;
+    }
+
+    d->fullscreen = create_shm_image(d, 0, 0);
+    if (!d->fullscreen) {
+        destroy_shm_image(d, d->primary);
+        d->primary = NULL;
+        return X11SPICE_ERR_NOSHM;
+    }
 
     d->scanline = create_shm_image(d, 0, 1);
     if (!d->scanline) {
+        destroy_shm_image(d, d->primary);
+        d->primary = NULL;
         destroy_shm_image(d, d->fullscreen);
         d->fullscreen = NULL;
         return X11SPICE_ERR_NOSHM;
@@ -477,6 +490,11 @@ int display_create_screen_images(display_t *d)
 
 void display_destroy_screen_images(display_t *d)
 {
+    if (d->primary) {
+        destroy_shm_image(d, d->primary);
+        d->primary = NULL;
+    }
+
     if (d->fullscreen) {
         destroy_shm_image(d, d->fullscreen);
         d->fullscreen = NULL;

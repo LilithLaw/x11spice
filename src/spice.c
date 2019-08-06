@@ -633,7 +633,7 @@ static int try_listen(spice_t *s, options_t *options)
     return 0;
 }
 
-int spice_start(spice_t *s, options_t *options, shm_image_t *fullscreen)
+int spice_start(spice_t *s, options_t *options, shm_image_t *primary)
 {
     int rc;
 
@@ -678,8 +678,8 @@ int spice_start(spice_t *s, options_t *options, shm_image_t *fullscreen)
 
     spice_server_vm_start(s->server);
 
-    rc = spice_create_primary(s, fullscreen->w, fullscreen->h,
-                              fullscreen->bytes_per_line, fullscreen->shmaddr);
+    rc = spice_create_primary(s, primary->w, primary->h,
+                              primary->bytes_per_line, primary->shmaddr);
 
     return rc;
 }

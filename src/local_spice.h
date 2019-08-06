@@ -61,7 +61,7 @@ typedef struct {
 /*----------------------------------------------------------------------------
 **  Prototypes
 **--------------------------------------------------------------------------*/
-int spice_start(spice_t *s, options_t *options, shm_image_t *fullscreen);
+int spice_start(spice_t *s, options_t *options, shm_image_t *primary);
 void spice_end(spice_t *s);
 int spice_create_primary(spice_t *s, int w, int h, int bytes_per_line, void *shmaddr);
 void spice_destroy_primary(spice_t *s);

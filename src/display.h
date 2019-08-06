@@ -55,6 +55,7 @@ typedef struct {
 
     const xcb_query_extension_reply_t *xfixes_ext;
 
+    shm_image_t *primary;
     shm_image_t *fullscreen;
     shm_image_t *scanline;
 
