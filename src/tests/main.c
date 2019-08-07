@@ -37,6 +37,10 @@ int main(int argc, char *argv[])
 
     g_test_add("/x11spice/x11perf1", xdummy_t, "x11perf1", start_server, test_script, stop_server);
 
+#if defined(SPICEDUMMY)
+    g_test_add("/x11spice/piglit1", xdummy_t, "piglit1", start_server, test_script, stop_server);
+#endif
+
     g_log_set_always_fatal(G_LOG_LEVEL_ERROR);
 
     return g_test_run();

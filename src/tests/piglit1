@@ -1,0 +1,31 @@
+#!/bin/bash
+# x11spice test script
+#   This will receive 4 arguments:
+#       $1 - Test X display, with a spice server attached
+#       $2 - Client X display, upon which we can run spicy
+#       $3 - Spice URI to connect to the spice server on $1
+#       $4 - Directory we can use for logs and scratch info
+# Note that it's also important that this script monitor itself;
+#  there is no external timeout mechanism
+
+which piglit 2>/dev/null
+if [ $? -ne 0 ] ; then
+    echo piglit not available, skipping
+    exit 77
+fi
+
+echo Running piglit to see how we perform
+spicy --display $2 --uri=$3 &
+spid=$!
+DISPLAY=:1 piglit run sanity $4/piglit
+rc=$?
+
+ps -p $spid >/dev/null 2>&1
+if [ $? -ne 0 ] ; then
+    echo Spice client not running.  That is an error.
+    exit 1
+else
+    kill $spid
+fi
+
+exit $rc
