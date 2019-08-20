@@ -29,6 +29,9 @@
 
 #include "picturestr.h"
 
+/* Need to set xkb rules to evdev */
+#include "xkbsrv.h"
+
 /*
  * Driver data structures.
  */
@@ -327,6 +330,10 @@ DUMMYPreInit(ScrnInfoPtr pScrn, int flags)
     int maxClock = 300000;
     GDevPtr device = xf86GetEntityInfo(pScrn->entityList[0])->device;
 
+    XkbRMLVOSet rmlvo = {
+        .rules   = (char *) "evdev"
+    };
+
     if (flags & PROBE_DETECT) {
         return TRUE;
     }
@@ -489,6 +496,9 @@ DUMMYPreInit(ScrnInfoPtr pScrn, int flags)
     /* We have no contiguous physical fb in physical memory */
     pScrn->memPhysBase = 0;
     pScrn->fbOffset = 0;
+
+    /* We pass in evdev style inputs */
+    XkbSetRulesDflts(&rmlvo);
 
     return TRUE;
 }
