@@ -59,7 +59,7 @@ static xcb_screen_t *screen_of_display(xcb_connection_t *c, int screen)
     return NULL;
 }
 
-static int bits_per_pixel(display_t *d)
+static unsigned int bits_per_pixel(display_t *d)
 {
     xcb_format_iterator_t fmt;
 
@@ -332,10 +332,10 @@ int display_open(display_t *d, session_t *session)
         overall.
 */
 
-shm_image_t *create_shm_image(display_t *d, int w, int h)
+shm_image_t *create_shm_image(display_t *d, unsigned int w, unsigned int h)
 {
     shm_image_t *shmi;
-    int imgsize;
+    size_t imgsize;
     xcb_void_cookie_t cookie;
     xcb_generic_error_t *error;
 
@@ -353,7 +353,7 @@ shm_image_t *create_shm_image(display_t *d, int w, int h)
     if (shmi->shmid != -1)
         shmi->shmaddr = shmat(shmi->shmid, 0, 0);
     if (shmi->shmid == -1 || shmi->shmaddr == (void *) -1) {
-        g_warning("Cannot get shared memory of size %d; errno %d", imgsize, errno);
+        g_warning("Cannot get shared memory of size %" G_GSIZE_FORMAT "; errno %d", imgsize, errno);
         free(shmi);
         return NULL;
     }

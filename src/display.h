@@ -33,9 +33,9 @@ struct session_struct;
 **--------------------------------------------------------------------------*/
 typedef struct {
     int shmid;
-    int w;
-    int h;
-    int bytes_per_line;
+    unsigned int w;
+    unsigned int h;
+    unsigned int bytes_per_line;
     xcb_shm_seg_t shmseg;
     void *shmaddr;
     void *drawable_ptr;
@@ -44,9 +44,9 @@ typedef struct {
 typedef struct {
     xcb_connection_t *c;
     xcb_window_t root;
-    int width;
-    int height;
-    int depth;
+    unsigned int width;
+    unsigned int height;
+    unsigned int depth;
 
     const xcb_query_extension_reply_t *damage_ext;
     xcb_damage_damage_t damage;
@@ -76,7 +76,7 @@ void display_stop_event_thread(display_t *d);
 int display_find_changed_tiles(display_t *d, int row, int *tiles, int tiles_across);
 void display_copy_image_into_fullscreen(display_t *d, shm_image_t *shmi, int x, int y);
 
-shm_image_t *create_shm_image(display_t *d, int w, int h);
+shm_image_t *create_shm_image(display_t *d, unsigned int w, unsigned int h);
 int read_shm_image(display_t *d, shm_image_t *shmi, int x, int y);
 void destroy_shm_image(display_t *d, shm_image_t *shmi);
 
