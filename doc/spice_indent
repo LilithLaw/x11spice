@@ -83,4 +83,5 @@ indent "$fname" \
   -T x11spice_server_t \
   -T test_t \
   -T Bool \
+  -T shm_segment_t \
   "$@"

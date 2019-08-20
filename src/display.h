@@ -33,11 +33,15 @@ struct session_struct;
 **--------------------------------------------------------------------------*/
 typedef struct {
     int shmid;
+    xcb_shm_seg_t shmseg;
+    void *shmaddr;
+} shm_segment_t;
+
+typedef struct {
+    shm_segment_t segment;
     unsigned int w;
     unsigned int h;
     unsigned int bytes_per_line;
-    xcb_shm_seg_t shmseg;
-    void *shmaddr;
     void *drawable_ptr;
 } shm_image_t;
 

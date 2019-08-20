@@ -106,7 +106,7 @@ static QXLDrawable *shm_image_to_drawable(spice_t *s, shm_image_t *shmi, int x, 
     qxl_image->bitmap.y = shmi->h;
     qxl_image->bitmap.stride = shmi->bytes_per_line;
     qxl_image->bitmap.palette = 0;
-    qxl_image->bitmap.data = (uintptr_t) shmi->shmaddr;
+    qxl_image->bitmap.data = (uintptr_t) shmi->segment.shmaddr;
 
     return drawable;
 }

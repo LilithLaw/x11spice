@@ -349,20 +349,20 @@ shm_image_t *create_shm_image(display_t *d, unsigned int w, unsigned int h)
     shmi->bytes_per_line = (bits_per_pixel(d) / 8) * shmi->w;
     imgsize = shmi->bytes_per_line * shmi->h;
 
-    shmi->shmid = shmget(IPC_PRIVATE, imgsize, IPC_CREAT | 0700);
-    if (shmi->shmid != -1)
-        shmi->shmaddr = shmat(shmi->shmid, 0, 0);
-    if (shmi->shmid == -1 || shmi->shmaddr == (void *) -1) {
+    shmi->segment.shmid = shmget(IPC_PRIVATE, imgsize, IPC_CREAT | 0700);
+    if (shmi->segment.shmid != -1)
+        shmi->segment.shmaddr = shmat(shmi->segment.shmid, 0, 0);
+    if (shmi->segment.shmid == -1 || shmi->segment.shmaddr == (void *) -1) {
         g_warning("Cannot get shared memory of size %" G_GSIZE_FORMAT "; errno %d", imgsize, errno);
         free(shmi);
         return NULL;
     }
     /* We tell shmctl to detach now; that prevents us from holding this
        shared memory segment forever in case of abnormal process exit. */
-    shmctl(shmi->shmid, IPC_RMID, NULL);
+    shmctl(shmi->segment.shmid, IPC_RMID, NULL);
 
-    shmi->shmseg = xcb_generate_id(d->c);
-    cookie = xcb_shm_attach_checked(d->c, shmi->shmseg, shmi->shmid, 0);
+    shmi->segment.shmseg = xcb_generate_id(d->c);
+    cookie = xcb_shm_attach_checked(d->c, shmi->segment.shmseg, shmi->segment.shmid, 0);
     error = xcb_request_check(d->c, cookie);
     if (error) {
         g_warning("Could not attach; type %d; code %d; major %d; minor %d\n",
@@ -380,7 +380,7 @@ int read_shm_image(display_t *d, shm_image_t *shmi, int x, int y)
     xcb_shm_get_image_reply_t *reply;
 
     cookie = xcb_shm_get_image(d->c, d->root, x, y, shmi->w, shmi->h,
-                               ~0, XCB_IMAGE_FORMAT_Z_PIXMAP, shmi->shmseg, 0);
+                               ~0, XCB_IMAGE_FORMAT_Z_PIXMAP, shmi->segment.shmseg, 0);
 
     reply = xcb_shm_get_image_reply(d->c, cookie, &e);
     if (e) {
@@ -401,8 +401,8 @@ int display_find_changed_tiles(display_t *d, int row, int *tiles, int tiles_acro
     memset(tiles, 0, sizeof(*tiles) * tiles_across);
     ret = read_shm_image(d, d->scanline, 0, row);
     if (ret == 0) {
-        uint32_t *old = ((uint32_t *) d->fullscreen->shmaddr) + row * d->fullscreen->w;
-        uint32_t *new = ((uint32_t *) d->scanline->shmaddr);
+        uint32_t *old = ((uint32_t *) d->fullscreen->segment.shmaddr) + row * d->fullscreen->w;
+        uint32_t *new = ((uint32_t *) d->scanline->segment.shmaddr);
         if (memcmp(old, new, sizeof(*old) * d->scanline->w) == 0)
             return 0;
 
@@ -430,8 +430,8 @@ int display_find_changed_tiles(display_t *d, int row, int *tiles, int tiles_acro
 
 void display_copy_image_into_fullscreen(display_t *d, shm_image_t *shmi, int x, int y)
 {
-    uint32_t *to = ((uint32_t *) d->fullscreen->shmaddr) + (y * d->fullscreen->w) + x;
-    uint32_t *from = ((uint32_t *) shmi->shmaddr);
+    uint32_t *to = ((uint32_t *) d->fullscreen->segment.shmaddr) + (y * d->fullscreen->w) + x;
+    uint32_t *from = ((uint32_t *) shmi->segment.shmaddr);
     int i;
 
     /* Ignore invalid draws.  This can happen if the screen is resized after a scan
@@ -451,9 +451,9 @@ void display_copy_image_into_fullscreen(display_t *d, shm_image_t *shmi, int x, 
 
 void destroy_shm_image(display_t *d, shm_image_t *shmi)
 {
-    xcb_shm_detach(d->c, shmi->shmseg);
-    shmdt(shmi->shmaddr);
-    shmctl(shmi->shmid, IPC_RMID, NULL);
+    xcb_shm_detach(d->c, shmi->segment.shmseg);
+    shmdt(shmi->segment.shmaddr);
+    shmctl(shmi->segment.shmid, IPC_RMID, NULL);
     if (shmi->drawable_ptr)
         free(shmi->drawable_ptr);
     free(shmi);

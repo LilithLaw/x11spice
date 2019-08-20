@@ -679,7 +679,7 @@ int spice_start(spice_t *s, options_t *options, shm_image_t *primary)
     spice_server_vm_start(s->server);
 
     rc = spice_create_primary(s, primary->w, primary->h,
-                              primary->bytes_per_line, primary->shmaddr);
+                              primary->bytes_per_line, primary->segment.shmaddr);
 
     return rc;
 }
