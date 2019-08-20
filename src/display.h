@@ -21,10 +21,10 @@
 #ifndef DISPLAY_H_
 #define DISPLAY_H_
 
+#include <glib.h>
 #include <xcb/xcb.h>
 #include <xcb/damage.h>
 #include <xcb/shm.h>
-
 
 struct session_struct;
 
@@ -32,7 +32,8 @@ struct session_struct;
 **  Structure definitions
 **--------------------------------------------------------------------------*/
 typedef struct {
-    int shmid;
+    int shmid;      /* if shmid is -1: the shm_segment_t is "empty", other members are undefined */
+    size_t size;
     xcb_shm_seg_t shmseg;
     void *shmaddr;
 } shm_segment_t;
@@ -62,6 +63,12 @@ typedef struct {
     shm_image_t *primary;
     shm_image_t *fullscreen;
     shm_image_t *scanline;
+
+    /* The SHM cache holds up to 10 segments, this provides a good cache
+     * hit rate while keeping memory usage reasonable.
+     */
+    shm_segment_t shm_cache[10];
+    GMutex shm_cache_mutex;
 
     pthread_t event_thread;
     struct session_struct *session;

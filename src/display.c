@@ -213,11 +213,153 @@ static int register_for_events(display_t *d)
     return 0;
 }
 
+static void shm_segment_destroy(display_t *d, shm_segment_t *segment)
+{
+    if (segment->shmid == -1) {
+        return;
+    }
+
+    xcb_shm_detach(d->c, segment->shmseg);
+    segment->shmseg = -1;
+
+    shmdt(segment->shmaddr);
+    segment->shmaddr = NULL;
+
+    shmctl(segment->shmid, IPC_RMID, NULL);
+    segment->shmid = -1;
+}
+
+
+static int shm_cache_get(display_t *d, size_t size, shm_segment_t *segment)
+{
+    int i, ret;
+    shm_segment_t *bigger_entry = NULL;
+    shm_segment_t *entry_to_use = NULL;
+
+#if defined(DEBUG_SHM_CACHE)
+    static guint cache_hits = 0;
+    static guint cache_total = 0;
+
+    cache_total++;
+#endif
+
+    g_mutex_lock(&d->shm_cache_mutex);
+
+    /* Check the cache for a segment of size 'size' or bigger.
+     * Use an exact-size segment if found.
+     * If not, use the smallest entry that is big enough.
+     */
+    for (i = 0; i < G_N_ELEMENTS(d->shm_cache); i++) {
+        shm_segment_t *entry = &d->shm_cache[i];
+
+        if (entry->shmid != -1) {
+            /* If a cache entry of the exact size being requested is found, use that */
+            if (size == entry->size) {
+                entry_to_use = entry;
+                break;
+            }
+
+            /* Keep track of the next-biggest entry in case an exact-size match isn't found */
+            if (size < entry->size) {
+                if (!bigger_entry || entry->size < bigger_entry->size) {
+                    bigger_entry = entry;
+                }
+            }
+        }
+    }
+
+    /* An exact-size entry wasn't found, use the next biggest entry that was found */
+    if (!entry_to_use) {
+        entry_to_use = bigger_entry;
+    }
+
+    if (entry_to_use) {
+        *segment = *entry_to_use;
+        entry_to_use->shmid = -1;
+
+        ret = 1;
+
+#if defined(DEBUG_SHM_CACHE)
+        cache_hits++;
+        if ((cache_hits % 100 == 0)) {
+            g_debug("SHM cache hitrate: %u/%u (%.2f%%)", cache_hits, cache_total,
+                    (float) ((float) cache_hits / (float) cache_total) * 100);
+        }
+#endif
+    } else {
+        /* No usable entry found in the cache */
+        ret = 0;
+    }
+
+    g_mutex_unlock(&d->shm_cache_mutex);
+    return ret;
+}
+
+static int shm_cache_add(display_t *d, shm_segment_t *segment)
+{
+    int i, ret;
+    shm_segment_t *smallest_entry = NULL;
+    shm_segment_t *entry_to_use = NULL;
+
+    g_mutex_lock(&d->shm_cache_mutex);
+
+    /* 'segment' is now unused, try to add it to the cache.
+     * Use an empty slot in the cache if available.
+     * If not, evict the smallest entry (which also must be smaller than 'segment') from the cache.
+     */
+    for (i = 0; i < G_N_ELEMENTS(d->shm_cache); i++) {
+        shm_segment_t *entry = &d->shm_cache[i];
+
+        if (entry->shmid == -1) {
+            /* Use an empty slot if found */
+            entry_to_use = entry;
+            break;
+        }
+
+        /* Keep track of the smallest entry that's smaller than 'segment' */
+        if (entry->size < segment->size) {
+            if (!smallest_entry || entry->size < smallest_entry->size) {
+                smallest_entry = entry;
+            }
+        }
+    }
+
+    /* If no empty entries were found, evict 'smallest_entry' and reuse it */
+    if (!entry_to_use && smallest_entry) {
+        shm_segment_destroy(d, smallest_entry);
+        entry_to_use = smallest_entry;
+    }
+
+    if (entry_to_use) {
+        *entry_to_use = *segment;
+        ret = 1;
+    } else {
+        /* Cache is full, and contained no entries smaller than the one being added */
+        ret = 0;
+    }
+
+    g_mutex_unlock(&d->shm_cache_mutex);
+    return ret;
+}
+
+static void shm_cache_destroy(display_t *d)
+{
+    int i;
+
+    g_mutex_lock(&d->shm_cache_mutex);
+    for (i = 0; i < G_N_ELEMENTS(d->shm_cache); i++) {
+        shm_segment_t *entry = &d->shm_cache[i];
+
+        shm_segment_destroy(d, entry);
+    }
+    g_mutex_unlock(&d->shm_cache_mutex);
+}
 
 int display_open(display_t *d, session_t *session)
 {
     int scr;
     int rc;
+    int i;
     xcb_damage_query_version_cookie_t dcookie;
     xcb_damage_query_version_reply_t *damage_version;
     xcb_xkb_use_extension_cookie_t use_cookie;
@@ -314,23 +456,17 @@ int display_open(display_t *d, session_t *session)
     if (rc)
         return rc;
 
+    g_mutex_init(&d->shm_cache_mutex);
+    for (i = 0; i < G_N_ELEMENTS(d->shm_cache); i++) {
+        d->shm_cache[i].shmid = -1;
+    }
+
     rc = display_create_screen_images(d);
 
     g_message("Display %s opened", session->options.display ? session->options.display : "");
 
     return rc;
 }
-
-/* 
-  TODO: Implement a cache for shared memory handles
-        That is, instead of doing the shmget/shmat for every read,
-        we should cache the shmid, and reuse if we're doing a later
-        read of a similar size.
-
-        We would likely see a 40% improvement in raw read time.  Note
-        that a callgrind run suggested that would be on the order of 5%
-        overall.
-*/
 
 shm_image_t *create_shm_image(display_t *d, unsigned int w, unsigned int h)
 {
@@ -349,6 +485,11 @@ shm_image_t *create_shm_image(display_t *d, unsigned int w, unsigned int h)
     shmi->bytes_per_line = (bits_per_pixel(d) / 8) * shmi->w;
     imgsize = shmi->bytes_per_line * shmi->h;
 
+    if (shm_cache_get(d, imgsize, &shmi->segment)) {
+        return shmi;
+    }
+
+    /* No usable shared memory segment found in cache, allocate a new one */
     shmi->segment.shmid = shmget(IPC_PRIVATE, imgsize, IPC_CREAT | 0700);
     if (shmi->segment.shmid != -1)
         shmi->segment.shmaddr = shmat(shmi->segment.shmid, 0, 0);
@@ -360,6 +501,7 @@ shm_image_t *create_shm_image(display_t *d, unsigned int w, unsigned int h)
     /* We tell shmctl to detach now; that prevents us from holding this
        shared memory segment forever in case of abnormal process exit. */
     shmctl(shmi->segment.shmid, IPC_RMID, NULL);
+    shmi->segment.size = imgsize;
 
     shmi->segment.shmseg = xcb_generate_id(d->c);
     cookie = xcb_shm_attach_checked(d->c, shmi->segment.shmseg, shmi->segment.shmid, 0);
@@ -451,9 +593,10 @@ void display_copy_image_into_fullscreen(display_t *d, shm_image_t *shmi, int x, 
 
 void destroy_shm_image(display_t *d, shm_image_t *shmi)
 {
-    xcb_shm_detach(d->c, shmi->segment.shmseg);
-    shmdt(shmi->segment.shmaddr);
-    shmctl(shmi->segment.shmid, IPC_RMID, NULL);
+    if (!shm_cache_add(d, &shmi->segment)) {
+        /* Could not add to cache, destroy this segment */
+        shm_segment_destroy(d, &shmi->segment);
+    }
     if (shmi->drawable_ptr)
         free(shmi->drawable_ptr);
     free(shmi);
@@ -521,6 +664,8 @@ void display_stop_event_thread(display_t *d)
 
 void display_close(display_t *d)
 {
+    shm_cache_destroy(d);
+    g_mutex_clear(&d->shm_cache_mutex);
     xcb_damage_destroy(d->c, d->damage);
     display_destroy_screen_images(d);
     xcb_disconnect(d->c);
