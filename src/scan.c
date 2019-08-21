@@ -365,6 +365,12 @@ static void *scanner_run(void *opaque)
         }
         scan_update_fps(scanner, 1);
 
+        if (r->type == PERIODIC_SCAN_REQUEST) {
+            free_queue_item(r);
+            scanner_periodic(scanner);
+            continue;
+        }
+
         if (r->type == EXIT_SCAN_REPORT) {
             free_queue_item(r);
             break;

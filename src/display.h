@@ -55,6 +55,7 @@ typedef struct {
 
     const xcb_query_extension_reply_t *damage_ext;
     xcb_damage_damage_t damage;
+    unsigned int fullscreen_damage_count;
 
     const xcb_query_extension_reply_t *shm_ext;
 
@@ -90,5 +91,7 @@ void display_copy_image_into_fullscreen(display_t *d, shm_image_t *shmi, int x, 
 shm_image_t *create_shm_image(display_t *d, unsigned int w, unsigned int h);
 int read_shm_image(display_t *d, shm_image_t *shmi, int x, int y);
 void destroy_shm_image(display_t *d, shm_image_t *shmi);
+
+int display_trust_damage(display_t *d);
 
 #endif

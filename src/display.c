@@ -114,13 +114,6 @@ static void handle_damage_notify(display_t *display, xcb_damage_notify_event_t *
     int i, n;
     pixman_box16_t *p;
 
-#if defined(DEBUG_DISPLAY_EVENTS)
-    g_debug("Damage Notify [seq %d|level %d|more %d|area (%dx%d)@%dx%d|geo (%dx%d)@%dx%d",
-            dev->sequence, dev->level, dev->level & 0x80,
-            dev->area.width, dev->area.height, dev->area.x, dev->area.y,
-            dev->geometry.width, dev->geometry.height, dev->geometry.x, dev->geometry.y);
-#endif
-
     pixman_region_union_rect(damage_region, damage_region,
                              dev->area.x, dev->area.y, dev->area.width, dev->area.height);
 
@@ -134,9 +127,31 @@ static void handle_damage_notify(display_t *display, xcb_damage_notify_event_t *
 
     p = pixman_region_rectangles(damage_region, &n);
 
-    for (i = 0; i < n; i++)
-        scanner_push(&display->session->scanner, DAMAGE_SCAN_REPORT,
-                     p[i].x1, p[i].y1, p[i].x2 - p[i].x1, p[i].y2 - p[i].y1);
+    /* Compositing window managers such as mutter have a bad habit of sending
+       whole screen updates, which ends up being harmful to user experience.
+       In that case, we want to stop trusting those damage reports */
+    if (dev->area.width == display->width && dev->area.height == display->height) {
+        display->fullscreen_damage_count++;
+    } else {
+        display->fullscreen_damage_count = 0;
+    }
+
+#if defined(DEBUG_DISPLAY_EVENTS)
+    g_debug("Damage Notify [seq %d|level %d|more %d|area (%dx%d)@%dx%d|geo (%dx%d)@%dx%d%s",
+            dev->sequence, dev->level, dev->level & 0x80,
+            dev->area.width, dev->area.height, dev->area.x, dev->area.y,
+            dev->geometry.width, dev->geometry.height, dev->geometry.x, dev->geometry.y,
+            display_trust_damage(display) ? "" : " SKIPPED");
+#endif
+
+    if (display_trust_damage(display)) {
+        for (i = 0; i < n; i++)
+            scanner_push(&display->session->scanner, DAMAGE_SCAN_REPORT,
+                         p[i].x1, p[i].y1, p[i].x2 - p[i].x1, p[i].y2 - p[i].y1);
+    } else {
+        scanner_push(&display->session->scanner, PERIODIC_SCAN_REQUEST,
+                         0, 0, 0, 0);
+    }
 
     pixman_region_clear(damage_region);
 }
@@ -669,4 +684,9 @@ void display_close(display_t *d)
     xcb_damage_destroy(d->c, d->damage);
     display_destroy_screen_images(d);
     xcb_disconnect(d->c);
+}
+
+int display_trust_damage(display_t *d)
+{
+    return d->session->options.always_trust_damage || d->fullscreen_damage_count <= 2;
 }
