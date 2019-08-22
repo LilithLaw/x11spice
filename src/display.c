@@ -408,23 +408,29 @@ int display_open(display_t *d, session_t *session)
         return X11SPICE_ERR_NODAMAGE;
     }
 
-    dcookie = xcb_damage_query_version(d->c, XCB_DAMAGE_MAJOR_VERSION, XCB_DAMAGE_MINOR_VERSION);
-    damage_version = xcb_damage_query_version_reply(d->c, dcookie, &error);
-    if (error) {
-        fprintf(stderr, "Error:  Could not query damage; type %d; code %d; major %d; minor %d\n",
-                error->response_type, error->error_code, error->major_code, error->minor_code);
-        return X11SPICE_ERR_NODAMAGE;
-    }
-    free(damage_version);
+    if (session->options.full_screen_fps == 0) {
+        dcookie =
+            xcb_damage_query_version(d->c, XCB_DAMAGE_MAJOR_VERSION, XCB_DAMAGE_MINOR_VERSION);
+        damage_version = xcb_damage_query_version_reply(d->c, dcookie, &error);
+        if (error) {
+            fprintf(stderr,
+                    "Error:  Could not query damage; type %d; code %d; major %d; minor %d\n",
+                    error->response_type, error->error_code, error->major_code, error->minor_code);
+            return X11SPICE_ERR_NODAMAGE;
+        }
+        free(damage_version);
 
-    d->damage = xcb_generate_id(d->c);
-    cookie =
-        xcb_damage_create_checked(d->c, d->damage, d->root, XCB_DAMAGE_REPORT_LEVEL_RAW_RECTANGLES);
-    error = xcb_request_check(d->c, cookie);
-    if (error) {
-        fprintf(stderr, "Error:  Could not create damage; type %d; code %d; major %d; minor %d\n",
-                error->response_type, error->error_code, error->major_code, error->minor_code);
-        return X11SPICE_ERR_NODAMAGE;
+        d->damage = xcb_generate_id(d->c);
+        cookie =
+            xcb_damage_create_checked(d->c, d->damage, d->root,
+                                      XCB_DAMAGE_REPORT_LEVEL_RAW_RECTANGLES);
+        error = xcb_request_check(d->c, cookie);
+        if (error) {
+            fprintf(stderr,
+                    "Error:  Could not create damage; type %d; code %d; major %d; minor %d\n",
+                    error->response_type, error->error_code, error->major_code, error->minor_code);
+            return X11SPICE_ERR_NODAMAGE;
+        }
     }
 
     d->shm_ext = xcb_get_extension_data(d->c, &xcb_shm_id);
@@ -741,7 +747,9 @@ void display_close(display_t *d)
 {
     shm_cache_destroy(d);
     g_mutex_clear(&d->shm_cache_mutex);
-    xcb_damage_destroy(d->c, d->damage);
+    if (d->session->options.full_screen_fps == 0) {
+        xcb_damage_destroy(d->c, d->damage);
+    }
     display_destroy_screen_images(d);
     xcb_disconnect(d->c);
 }

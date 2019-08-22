@@ -395,6 +395,8 @@ static void options_from_config(options_t *options)
         options->trust_damage = NEVER_TRUST;
     g_free(trust_damage);
 
+    options->full_screen_fps = int_option(userkey, systemkey, "spice", "full-screen-fps");
+
 #if defined(HAVE_LIBAUDIT_H)
     /* Pick an arbitrary default in the user range.  CodeWeavers was founed in 1996, so 1196 it is... */
     if (options->audit_message_type == 0)

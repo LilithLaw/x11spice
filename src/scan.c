@@ -113,6 +113,9 @@ static QXLDrawable *shm_image_to_drawable(spice_t *s, shm_image_t *shmi, int x, 
 
 static guint64 get_timeout(scanner_t *scanner)
 {
+    if (scanner->session->options.full_screen_fps > 0) {
+        return G_USEC_PER_SEC / scanner->session->options.full_screen_fps;
+    }
     return G_USEC_PER_SEC / scanner->target_fps / NUM_SCANLINES;
 }
 
@@ -384,6 +387,18 @@ static gpointer g_async_queue_timeout_pop(GAsyncQueue *queue, guint64 t)
 }
 #endif
 
+static void scanner_push_screen(scanner_t *scanner)
+{
+    scan_report_t whole_screen = {
+        .type = SCANLINE_SCAN_REPORT,
+        .x = 0,.y = 0,
+        .w = scanner->session->display.width,
+        .h = scanner->session->display.height
+    };
+
+    handle_scan_report(scanner->session, &whole_screen);
+}
+
 static void *scanner_run(void *opaque)
 {
     scanner_t *scanner = (scanner_t *) opaque;
@@ -391,8 +406,12 @@ static void *scanner_run(void *opaque)
         scan_report_t *r;
         r = (scan_report_t *) g_async_queue_timeout_pop(scanner->queue, get_timeout(scanner));
         if (!r) {
-            scan_update_fps(scanner, -1);
-            scanner_periodic(scanner);
+            if (scanner->session->options.full_screen_fps > 0) {
+                scanner_push_screen(scanner);
+            } else {
+                scan_update_fps(scanner, -1);
+                scanner_periodic(scanner);
+            }
             continue;
         }
 
