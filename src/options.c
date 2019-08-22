@@ -80,6 +80,7 @@ void options_free(options_t *options)
     str_replace(&options->on_connect, NULL);
     str_replace(&options->on_disconnect, NULL);
     str_replace(&options->user_config_file, NULL);
+    str_replace(&options->codecs, NULL);
 }
 
 
@@ -396,6 +397,7 @@ static void options_from_config(options_t *options)
     g_free(trust_damage);
 
     options->full_screen_fps = int_option(userkey, systemkey, "spice", "full-screen-fps");
+    string_option(&options->codecs, userkey, systemkey, "spice", "codecs");
 
 #if defined(HAVE_LIBAUDIT_H)
     /* Pick an arbitrary default in the user range.  CodeWeavers was founed in 1996, so 1196 it is... */

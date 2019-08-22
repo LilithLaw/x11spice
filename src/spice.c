@@ -565,6 +565,9 @@ static void set_options(spice_t *s, options_t *options)
     if (options->spice_password)
         spice_server_set_ticket(s->server, options->spice_password, 0, 0, 0);
 
+    if (options->codecs)
+        spice_server_set_video_codecs(s->server, options->codecs);
+
     spice_server_set_exit_on_disconnect(s->server, options->exit_on_disconnect);
 
 }
