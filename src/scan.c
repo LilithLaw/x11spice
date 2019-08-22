@@ -183,10 +183,8 @@ static void push_tiles_report(scanner_t *scanner, int start_row, int start_col, 
         NUM_HORIZONTAL_TILES)
         w++;
 
-    int y = (start_row * scanner->session->display.fullscreen->h) / NUM_SCANLINES;
-    int h = ((end_row - start_row + 1) * scanner->session->display.fullscreen->h) / NUM_SCANLINES;
-    if (((end_row - start_row + 1) * scanner->session->display.fullscreen->h) % NUM_SCANLINES)
-        h++;
+    int y = start_row * NUM_SCANLINES;
+    int h = (end_row - start_row + 1) * NUM_SCANLINES;
 
     if (x + w > scanner->session->display.fullscreen->w)
         w = scanner->session->display.fullscreen->w - x;
@@ -199,11 +197,12 @@ static void push_tiles_report(scanner_t *scanner, int start_row, int start_col, 
 
 static void grow_changed_tiles(scanner_t *scanner G_GNUC_UNUSED,
                                int *tiles_changed_in_row,
-                               int tiles_changed[][NUM_HORIZONTAL_TILES])
+                               int tiles_changed[][NUM_HORIZONTAL_TILES],
+                               int num_vertical_tiles)
 {
     int i;
     int j;
-    for (i = 0; i < NUM_SCANLINES; i++) {
+    for (i = 0; i < num_vertical_tiles; i++) {
         if (!tiles_changed_in_row[i] || tiles_changed_in_row[i] == NUM_HORIZONTAL_TILES)
             continue;
 
@@ -243,13 +242,13 @@ static void grow_changed_tiles(scanner_t *scanner G_GNUC_UNUSED,
     }
 }
 
-static void push_changes_across_rows(scanner_t *scanner, int *tiles_changed_in_row)
+static void push_changes_across_rows(scanner_t *scanner, int *tiles_changed_in_row, int num_vertical_tiles)
 {
     int i = 0;
     int start_row = -1;
     int current_row = -1;
 
-    for (i = 0; i < NUM_SCANLINES; i++) {
+    for (i = 0; i < num_vertical_tiles; i++) {
         if (tiles_changed_in_row[i] == NUM_HORIZONTAL_TILES) {
             if (start_row == -1)
                 start_row = i;
@@ -292,13 +291,14 @@ static void push_changes_in_one_row(scanner_t *scanner, int row, int *tiles_chan
 }
 
 static void push_changed_tiles(scanner_t *scanner, int *tiles_changed_in_row,
-                               int tiles_changed[][NUM_HORIZONTAL_TILES])
+                               int tiles_changed[][NUM_HORIZONTAL_TILES],
+                               int num_vertical_tiles)
 {
     int i = 0;
 
-    push_changes_across_rows(scanner, tiles_changed_in_row);
+    push_changes_across_rows(scanner, tiles_changed_in_row, num_vertical_tiles);
 
-    for (i = 0; i < NUM_SCANLINES; i++)
+    for (i = 0; i < num_vertical_tiles; i++)
         if (tiles_changed_in_row[i] > 0 && tiles_changed_in_row[i] < NUM_HORIZONTAL_TILES)
             push_changes_in_one_row(scanner, i, tiles_changed[i]);
 }
@@ -319,25 +319,28 @@ static void scanner_remove_region(scanner_t *scanner, scan_report_t *r)
 static void scanner_periodic(scanner_t *scanner)
 {
     int i;
-    int tiles_changed_in_row[NUM_SCANLINES];
-    int tiles_changed[NUM_SCANLINES][NUM_HORIZONTAL_TILES];
-    int h;
+    int num_vertical_tiles;
     int y;
     int offset;
     int rc;
 
     g_mutex_lock(scanner->session->lock);
-    h = scanner->session->display.fullscreen->h / NUM_SCANLINES;
+    num_vertical_tiles = scanner->session->display.fullscreen->h / NUM_SCANLINES;
+    if (scanner->session->display.fullscreen->h % NUM_SCANLINES)
+        num_vertical_tiles++;
+
+    int tiles_changed_in_row[num_vertical_tiles];
+    int tiles_changed[num_vertical_tiles][NUM_HORIZONTAL_TILES];
 
     offset = scanlines[scanner->current_scanline++];
     scanner->current_scanline %= NUM_SCANLINES;
 
-    for (y = offset, i = 0; i < NUM_SCANLINES; i++, y += h) {
+    for (y = offset, i = 0; i < num_vertical_tiles; i++, y += NUM_SCANLINES) {
         if (y >= scanner->session->display.fullscreen->h)
-            y = scanner->session->display.fullscreen->h - 1;
-
-        rc = display_find_changed_tiles(&scanner->session->display,
-                                        y, tiles_changed[i], NUM_HORIZONTAL_TILES);
+            rc = 0;
+        else
+            rc = display_find_changed_tiles(&scanner->session->display,
+                                            y, tiles_changed[i], NUM_HORIZONTAL_TILES);
         if (rc < 0) {
             g_mutex_unlock(scanner->session->lock);
             return;
@@ -345,8 +348,8 @@ static void scanner_periodic(scanner_t *scanner)
 
         tiles_changed_in_row[i] = rc;
     }
-    grow_changed_tiles(scanner, tiles_changed_in_row, tiles_changed);
-    push_changed_tiles(scanner, tiles_changed_in_row, tiles_changed);
+    grow_changed_tiles(scanner, tiles_changed_in_row, tiles_changed, num_vertical_tiles);
+    push_changed_tiles(scanner, tiles_changed_in_row, tiles_changed, num_vertical_tiles);
 
     g_mutex_unlock(scanner->session->lock);
 }
