@@ -55,7 +55,7 @@ int main(int argc, char *argv[])
 {
     int rc;
 
-    session_t session = { 0 };
+    session_t session = { };
 
     int display_opened = 0;
     int spice_started = 0;

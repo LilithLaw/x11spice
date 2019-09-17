@@ -147,7 +147,7 @@ void session_disconnect_client(session_t *session)
 int main(int argc, char *argv[])
 {
     gui_t gui;
-    session_t session = { 0 };
+    session_t session = { };
 
     setlocale(LC_ALL, "");
     gui_create(&gui, &session, argc, argv);

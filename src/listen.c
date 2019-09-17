@@ -117,7 +117,7 @@ int listen_parse(const char *listen_spec, char **addr, int *port_start, int *por
 static int try_port(const char *addr, int port)
 {
     static const int on = 1, off = 0;
-    struct addrinfo ai = { 0 }, *res, *e;
+    struct addrinfo ai = { }, *res, *e;
     char portbuf[33];
     int sock, rc;
 
