@@ -149,7 +149,7 @@ static void handle_damage_notify(display_t *display, xcb_damage_notify_event_t *
             scanner_push(&display->session->scanner, DAMAGE_SCAN_REPORT,
                          p[i].x1, p[i].y1, p[i].x2 - p[i].x1, p[i].y2 - p[i].y1);
     } else {
-        scanner_push(&display->session->scanner, PERIODIC_SCAN_REQUEST, 0, 0, 0, 0);
+        scanner_push(&display->session->scanner, FULLSCREEN_SCAN_REQUEST, 0, 0, 0, 0);
     }
 
     pixman_region_clear(damage_region);
@@ -599,6 +599,66 @@ void display_copy_image_into_fullscreen(display_t *d, shm_image_t *shmi, int x, 
         from += shmi->w;
         to += d->fullscreen->w;
     }
+}
+
+int display_scan_whole_screen(display_t *d, int num_vertical_tiles, int num_horizontal_tiles,
+                              int tiles[][num_horizontal_tiles], int *tiles_changed_in_row)
+{
+    int ret;
+    int len;
+    int h_tile, v_tile, y;
+    shm_image_t *fullscreen_new;
+
+    memset(tiles, 0, sizeof(**tiles) * num_vertical_tiles * num_horizontal_tiles);
+    fullscreen_new = create_shm_image(d, 0, 0);
+    if (!fullscreen_new)
+        return 0;
+
+    ret = read_shm_image(d, fullscreen_new, 0, 0);
+    if (ret == 0) {
+        for (v_tile = 0; v_tile < num_vertical_tiles; v_tile++) {
+            /* Note that integer math and multiplying first is important;
+               especially in the case where our screen height is not a
+               multiple of 32 */
+            int ystart = (v_tile * d->fullscreen->h) / num_vertical_tiles;
+            int yend = ((v_tile + 1) * d->fullscreen->h) / num_vertical_tiles;
+            for (y = ystart; y < yend; y++) {
+                if (y >= d->fullscreen->h)
+                    continue;
+
+                uint32_t *old = ((uint32_t *) d->fullscreen->segment.shmaddr) +
+                    (y * d->fullscreen->w);
+                uint32_t *new = ((uint32_t *) fullscreen_new->segment.shmaddr) +
+                    (y * fullscreen_new->w);
+                if (memcmp(old, new, sizeof(*old) * d->fullscreen->w) == 0)
+                    continue;
+
+                len = d->fullscreen->w / num_horizontal_tiles;
+                for (h_tile = 0; h_tile < num_horizontal_tiles; h_tile++, old += len, new += len) {
+                    if (h_tile == num_horizontal_tiles - 1)
+                        len = d->fullscreen->w - (h_tile * len);
+                    if (memcmp(old, new, sizeof(*old) * len)) {
+                        ret++;
+                        tiles[v_tile][h_tile]++;
+                        tiles_changed_in_row[v_tile]++;
+                    }
+                }
+            }
+#if defined(DEBUG_SCANLINES)
+            fprintf(stderr, "%d: ", v_tile);
+            for (h_tile = 0; h_tile < num_horizontal_tiles; h_tile++)
+                fprintf(stderr, "%c", tiles[v_tile][h_tile] ? 'X' : '-');
+            fprintf(stderr, "\n");
+            fflush(stderr);
+#endif
+        }
+    }
+
+    /* We've just read the full screen; may as well use it */
+    destroy_shm_image(d, d->fullscreen);
+    d->fullscreen = fullscreen_new;
+
+    return ret;
 }
 
 

@@ -86,6 +86,8 @@ int display_start_event_thread(display_t *d);
 void display_stop_event_thread(display_t *d);
 int display_find_changed_tiles(display_t *d, int row, int *tiles, int tiles_across);
 void display_copy_image_into_fullscreen(display_t *d, shm_image_t *shmi, int x, int y);
+int display_scan_whole_screen(display_t *d, int num_vertical_tiles, int num_horizontal_tiles,
+                              int tiles[][num_horizontal_tiles], int *tiles_changed_in_row);
 
 shm_image_t *create_shm_image(display_t *d, unsigned int w, unsigned int h);
 int read_shm_image(display_t *d, shm_image_t *shmi, int x, int y);

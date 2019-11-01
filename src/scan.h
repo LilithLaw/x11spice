@@ -30,7 +30,7 @@ typedef enum {
     DAMAGE_SCAN_REPORT,
     SCANLINE_SCAN_REPORT,
     EXIT_SCAN_REPORT,
-    PERIODIC_SCAN_REQUEST,
+    FULLSCREEN_SCAN_REQUEST,
 } scan_type_t;
 
 struct session_struct;

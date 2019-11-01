@@ -348,6 +348,34 @@ static void scanner_periodic(scanner_t *scanner)
     g_mutex_unlock(scanner->session->lock);
 }
 
+static void scan_full_screen(scanner_t *scanner)
+{
+    int num_vertical_tiles;
+    int rc;
+
+    g_mutex_lock(scanner->session->lock);
+    num_vertical_tiles = scanner->session->display.fullscreen->h / NUM_SCANLINES;
+    if (scanner->session->display.fullscreen->h % NUM_SCANLINES)
+        num_vertical_tiles++;
+
+    int tiles_changed_in_row[num_vertical_tiles];
+    int tiles_changed[num_vertical_tiles][NUM_HORIZONTAL_TILES];
+
+    memset(tiles_changed_in_row, 0, sizeof(tiles_changed_in_row));
+
+    rc = display_scan_whole_screen(&scanner->session->display,
+                                   num_vertical_tiles, NUM_HORIZONTAL_TILES,
+                                   tiles_changed, tiles_changed_in_row);
+    if (rc < 0) {
+        g_mutex_unlock(scanner->session->lock);
+        return;
+    }
+
+    grow_changed_tiles(scanner, tiles_changed_in_row, tiles_changed, num_vertical_tiles);
+    push_changed_tiles(scanner, tiles_changed_in_row, tiles_changed, num_vertical_tiles);
+    g_mutex_unlock(scanner->session->lock);
+}
+
 #if ! GLIB_CHECK_VERSION(2, 31, 18)
 static gpointer g_async_queue_timeout_pop(GAsyncQueue *queue, guint64 t)
 {
@@ -370,9 +398,9 @@ static void *scanner_run(void *opaque)
             continue;
         }
 
-        if (r->type == PERIODIC_SCAN_REQUEST) {
+        if (r->type == FULLSCREEN_SCAN_REQUEST) {
             free_queue_item(r);
-            scanner_periodic(scanner);
+            scan_full_screen(scanner);
             continue;
         }
 
