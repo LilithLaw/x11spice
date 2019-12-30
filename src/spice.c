@@ -568,6 +568,9 @@ static void set_options(spice_t *s, options_t *options)
     if (options->codecs)
         spice_server_set_video_codecs(s->server, options->codecs);
 
+    if (options->full_screen_fps > 0)
+        spice_server_set_streaming_video(s->server, SPICE_STREAM_VIDEO_ALL);
+
     spice_server_set_exit_on_disconnect(s->server, options->exit_on_disconnect);
 
 }
