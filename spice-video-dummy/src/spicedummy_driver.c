@@ -292,7 +292,7 @@ dummy_enable_glamor(ScrnInfoRec * scrn)
     const char *accel_method;
 
     if (((accel_method = xf86GetOptValString(dummy->Options, OPTION_ACCEL_METHOD))
-        && strcmp(accel_method, "glamor")) || dummy->fd == -1) {
+         && strcmp(accel_method, "glamor")) || dummy->fd == -1) {
         xf86DrvMsg(scrn->scrnIndex, X_CONFIG, "Glamor disabled.\n");
         return FALSE;
     }
