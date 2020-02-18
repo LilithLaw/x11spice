@@ -56,7 +56,7 @@ typedef struct dummyRec {
     int cursorFG, cursorBG;
 
     dummy_colors colors[1024];
-    Bool (*CreateWindow)();     /* wrapped CreateWindow */
+    Bool (*CreateWindow)(WindowRec * window);   /* wrapped CreateWindow */
     Bool prop;
 
     Bool glamor;
