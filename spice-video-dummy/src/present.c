@@ -162,19 +162,24 @@ dummy_present_flush(WindowRec * window)
 static Bool
 dummy_present_check_flip(RRCrtcRec * crtc, WindowRec * window, PixmapRec * pixmap, Bool sync_flip)
 {
-    return FALSE;
+    const ScrnInfoRec *scrn = xf86ScreenToScrn(crtc->pScreen);
+    const DUMMYRec *dummy = scrn->driverPrivate;
+
+    return !dummy->swCursor;
 }
 
 static Bool
 dummy_present_flip(RRCrtcRec * crtc, uint64_t event_id,
                    uint64_t target_msc, PixmapRec * pixmap, Bool sync_flip)
 {
-    return FALSE;
+    glamor_block_handler(crtc->pScreen);
+    return dummy_present_queue_vblank(crtc, event_id, target_msc) == Success;
 }
 
 static void
 dummy_present_unflip(ScreenRec * screen, uint64_t event_id)
 {
+    glamor_block_handler(screen);
     present_event_notify(event_id, 0, 0);
 }
 
