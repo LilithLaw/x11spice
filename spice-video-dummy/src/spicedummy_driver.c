@@ -623,6 +623,8 @@ DUMMYScreenInit(SCREEN_INIT_ARGS_DECL)
     if (!xf86CrtcScreenInit(pScreen))
         return FALSE;
 
+    xf86DPMSInit(pScreen, xf86DPMSSet, 0);
+
     if (dPtr->glamor && !glamor_init(pScreen, glamor_flags)) {
         xf86DrvMsg(pScrn->scrnIndex, X_ERROR,
                    "Failed to initialise glamor at ScreenInit() time.\n");
