@@ -35,7 +35,7 @@ spicedummy_drv_ladir = @moduledir@/drivers
 spicedummy_drv_la_SOURCES = \
          compat-api.h \
          dri2.c \
-         dummy_cursor.c \
          spicedummy_driver.c \
+         display.c \
          dummy.h \
          present.c

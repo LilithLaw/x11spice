@@ -429,6 +429,16 @@ DUMMYPreInit(ScrnInfoPtr pScrn, int flags)
         xf86DrvMsg(pScrn->scrnIndex, X_PROBED, "Max Clock: %d kHz\n", maxClock);
     }
 
+    /* Initialize an output and crtc */
+    crtc_config_init(pScrn);
+    output_pre_init(pScrn);
+    crtc_create(pScrn);
+
+    /* If monitor resolution is set on the command line, use it */
+    xf86SetDpi(pScrn, 0, 0);
+
+    xf86InitialConfiguration(pScrn, TRUE);
+
     pScrn->progClock = TRUE;
     /*
      * Setup the ClockRanges, which describe what clock ranges are available,
@@ -444,8 +454,6 @@ DUMMYPreInit(ScrnInfoPtr pScrn, int flags)
     clockRanges->doubleScanAllowed = TRUE;
 
     /* Subtract memory for HW cursor */
-
-
     {
         int apertureSize = (pScrn->videoRam * 1024);
         i = xf86ValidateModes(pScrn, pScrn->monitor->Modes,
@@ -468,33 +476,14 @@ DUMMYPreInit(ScrnInfoPtr pScrn, int flags)
         RETURN;
     }
 
-    /*
-     * Set the CRTC parameters for all of the modes based on the type
-     * of mode, and the chipset's interlace requirements.
-     *
-     * Calling this is required if the mode->Crtc* values are used by the
-     * driver and if the driver doesn't provide code to set them.  They
-     * are not pre-initialised at all.
-     */
-    xf86SetCrtcForModes(pScrn, 0);
-
     /* Set the current mode to the first in the list */
     pScrn->currentMode = pScrn->modes;
 
     /* Print the list of modes being used */
     xf86PrintModes(pScrn);
 
-    /* If monitor resolution is set on the command line, use it */
-    xf86SetDpi(pScrn, 0, 0);
-
     if (xf86LoadSubModule(pScrn, "fb") == NULL) {
         RETURN;
-    }
-
-    if (!dPtr->swCursor) {
-        if (!xf86LoadSubModule(pScrn, "ramdac")) {
-            RETURN;
-        }
     }
 
     /* We have no contiguous physical fb in physical memory */
@@ -631,6 +620,9 @@ DUMMYScreenInit(SCREEN_INIT_ARGS_DECL)
     /* must be after RGB ordering fixed */
     fbPictureInit(pScreen, 0, 0);
 
+    if (!xf86CrtcScreenInit(pScreen))
+        return FALSE;
+
     if (dPtr->glamor && !glamor_init(pScreen, glamor_flags)) {
         xf86DrvMsg(pScrn->scrnIndex, X_ERROR,
                    "Failed to initialise glamor at ScreenInit() time.\n");
@@ -639,13 +631,7 @@ DUMMYScreenInit(SCREEN_INIT_ARGS_DECL)
 
     xf86SetBlackWhitePixels(pScreen);
 
-    if (dPtr->swCursor) {
-        xf86DrvMsg(pScrn->scrnIndex, X_CONFIG, "Using Software Cursor.\n");
-    }
-
     {
-
-
         BoxRec AvailFBArea;
         int lines = pScrn->videoRam * 1024 / (pScrn->displayWidth * (pScrn->bitsPerPixel >> 3));
         AvailFBArea.x1 = 0;
@@ -663,15 +649,10 @@ DUMMYScreenInit(SCREEN_INIT_ARGS_DECL)
 
     /* Initialise cursor functions */
     miDCInitialize(pScreen, xf86GetPointerScreenFuncs());
-
-
-    if (!dPtr->swCursor) {
-        /* HW cursor functions */
-        if (!DUMMYCursorInit(pScreen)) {
-            xf86DrvMsg(pScrn->scrnIndex, X_ERROR, "Hardware cursor initialization failed\n");
-            return FALSE;
-        }
-    }
+    if (!dPtr->swCursor)
+        xf86_cursors_init(pScreen, 64, 64, HARDWARE_CURSOR_UPDATE_UNHIDDEN | HARDWARE_CURSOR_ARGB);
+    else
+        xf86DrvMsg(pScrn->scrnIndex, X_CONFIG, "Using Software Cursor.\n");
 
     /* Initialise default colourmap */
     if (!miCreateDefColormap(pScreen)) {

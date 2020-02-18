@@ -4,6 +4,7 @@
 #include "xf86_OSproc.h"
 
 #include "xf86Cursor.h"
+#include "xf86Crtc.h"
 
 #ifdef XvExtension
 #include "xf86xv.h"
@@ -35,6 +36,14 @@ extern void DUMMYHideCursor(ScrnInfoPtr pScrn);
 void dummy_dri2_close_screen(ScreenRec * screen);
 Bool dummy_dri2_screen_init(ScreenRec * screen);
 Bool dummy_present_screen_init(ScreenRec * screen);
+void dummy_present_free_vblanks(xf86CrtcPtr crtc);
+
+/* in crtc.c */
+void crtc_config_init(ScrnInfoPtr scrn);
+void crtc_create(ScrnInfoPtr scrn);
+
+/* in output.c */
+void output_pre_init(ScrnInfoPtr scrn);
 
 /* globals */
 typedef struct _color {
@@ -63,6 +72,16 @@ typedef struct dummyRec {
     int fd;
 } DUMMYRec, *DUMMYPtr;
 
+struct dummy_crtc_state {
+    uint64_t ust_base;
+    uint64_t msc_base;
+    uint64_t interval;
+
+    struct xorg_list vblank_queue;
+    struct xorg_list vblank_free;
+    OsTimerPtr vblank_timer;
+};
+
 /* The privates of the DUMMY driver */
 #define DUMMYPTR(p)	((DUMMYPtr)((p)->driverPrivate))
 
@@ -76,4 +95,18 @@ dummy_gettime_us(void)
     }
 
     return (uint64_t) tv.tv_sec * 1000000 + tv.tv_nsec / 1000;
+}
+
+static inline void
+dummy_get_ust_msc(const RRCrtcRec * crtc, uint64_t * ust, uint64_t * msc)
+{
+    struct dummy_crtc_state *state;
+    xf86CrtcRec *xf86_crtc;
+
+    xf86_crtc = crtc->devPrivate;
+    state = xf86_crtc->driver_private;
+    *ust = dummy_gettime_us();
+    *msc = state->msc_base;
+    if (state->interval)
+        *msc += (*ust - state->ust_base) / state->interval;
 }

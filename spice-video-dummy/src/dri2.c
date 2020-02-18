@@ -219,8 +219,9 @@ dummy_dri2_copy_region(DrawableRec * drawable, RegionRec * region,
 static int
 dummy_dri2_get_msc(DrawableRec * drawable, CARD64 * ust, CARD64 * msc)
 {
-    *ust = dummy_gettime_us();
-    *msc = 0;
+    ScrnInfoRec *scrn = xf86ScreenToScrn(drawable->pScreen);
+
+    dummy_get_ust_msc(xf86CompatRRCrtc(scrn), ust, msc);
 
     return TRUE;
 }
