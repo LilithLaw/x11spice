@@ -334,29 +334,6 @@ static void update_area_complete(QXLInstance *qin G_GNUC_UNUSED,
     g_debug("TODO: %s UNIMPLEMENTED!", __func__);
 }
 
-static int client_monitors_config(QXLInstance *qin G_GNUC_UNUSED,
-                                  VDAgentMonitorsConfig *monitors_config)
-{
-    uint i;
-    if (!monitors_config) {
-        /* a NULL is used as a test to see if we support this function */
-        g_debug("%s: NULL monitors_config", __func__);
-        return TRUE;
-    }
-
-    g_debug("%s: [num %d|flags 0x%x]", __func__, monitors_config->num_of_monitors,
-            monitors_config->flags);
-    for (i = 0; i < monitors_config->num_of_monitors; i++)
-        g_debug("  %d:[height %d|width %d|depth %d|x %d|y %d]", i,
-                monitors_config->monitors[i].height,
-                monitors_config->monitors[i].width,
-                monitors_config->monitors[i].depth,
-                monitors_config->monitors[i].x, monitors_config->monitors[i].y);
-
-    g_debug("TODO: %s UNIMPLEMENTED", __func__);
-    return FALSE;
-}
-
 /* spice sends AT scancodes (with a strange escape).
  * But xf86PostKeyboardEvent expects scancodes. Apparently most of the time
  * you just need to add MIN_KEYCODE, see xf86-input-keyboard/src/atKeynames
@@ -545,7 +522,9 @@ void initialize_spice_instance(spice_t *s)
         .flush_resources = flush_resources,
         .async_complete = async_complete,
         .update_area_complete = update_area_complete,
-        .client_monitors_config = client_monitors_config,
+        .client_monitors_config = NULL,     /* Specifying NULL here causes
+                                               the better logic in the agent
+                                               to operate */
         .set_client_capabilities = NULL,    /* Allowed to be unset */
     };
 
