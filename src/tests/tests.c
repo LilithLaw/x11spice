@@ -142,8 +142,10 @@ void test_basic(xdummy_t *xdummy, gconstpointer user_data)
         g_warning("Could not draw the grid");
         g_test_fail();
     }
-    else
-        check_screenshot(&test, &server, xdummy, "expected.grid.1024x768.ppm");
+    else {
+        snprintf(buf, sizeof(buf), "%s/expected.grid.1024x768.ppm", PATH_TO_TEST_SRC);
+        check_screenshot(&test, &server, xdummy, buf);
+    }
 
     test_common_stop(&test, &server);
 }
@@ -175,7 +177,7 @@ void test_resize(xdummy_t *xdummy, gconstpointer user_data)
             break;
         }
         else {
-            snprintf(buf, sizeof(buf), "expected.grid.%s.ppm", modes[i]);
+            snprintf(buf, sizeof(buf), "%s/expected.grid.%s.ppm", PATH_TO_TEST_SRC, modes[i]);
             check_screenshot(&test, &server, xdummy, buf);
         }
     }
@@ -204,7 +206,8 @@ void test_script(xdummy_t *xdummy, gconstpointer user_data)
     gchar *script_out;
     gchar *script_dir;
 
-    if (access(user_data, X_OK | R_OK)) {
+    snprintf(buf, sizeof(buf), "%s/%s", PATH_TO_TEST_SRC, user_data);
+    if (access(buf, X_OK | R_OK)) {
         g_warning("Could not find client script [%s]", (char *) user_data);
         g_test_fail();
         return;
@@ -226,8 +229,9 @@ void test_script(xdummy_t *xdummy, gconstpointer user_data)
 
     script_out = g_test_build_filename(G_TEST_BUILT, "run", user_data, "script.out", NULL);
     script_dir = strdup(script_out);
-    snprintf(buf, sizeof(buf), "./%s :%s :%s %s%s %s", (char *) user_data, xdummy->display,
-            client_server.display, needs_prefix ? "spice://" : "", server.uri, dirname(script_dir));
+    snprintf(buf, sizeof(buf), "%s/%s :%s :%s %s%s %s", PATH_TO_TEST_SRC, (char *) user_data,
+            xdummy->display, client_server.display, needs_prefix ? "spice://" : "",
+            server.uri, dirname(script_dir));
     free(script_dir);
 
     g_message("Launching script %s; this could take some time.", (char *) user_data);

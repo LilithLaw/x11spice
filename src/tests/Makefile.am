@@ -16,6 +16,8 @@ x11spice_test_SOURCES = \
     util.h \
     main.c
 
+x11spice_test_CPPFLAGS = -DPATH_TO_TEST_SRC=\"$(abs_srcdir)\"
+
 TESTS += options_test
 options_test_CPPFLAGS = -I$(top_srcdir)/src
 options_test_LDADD = $(GLIB2_LIBS)
