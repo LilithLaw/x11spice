@@ -95,9 +95,13 @@ static void check_screenshot(test_t *test, x11spice_server_t *spice_server, xdum
     gchar *screencap;
     char buf[4096];
 
+    /* We usually need a little bit of time for our scan to work and paint the screen */
+    struct timespec delay = { 0, 200000000 };
+
     /* We need a delay if we are running under valgrind */
     if (getenv("VALGRIND"))
-        sleep(2);
+        delay.tv_sec += 2;
+    nanosleep(&delay, NULL);
 
     screencap = g_test_build_filename(G_TEST_BUILT, "run", test->name, "screencap.ppm", NULL);
     if (strlen(spice_server->uri) >= 8 && memcmp(spice_server->uri, "spice://", 8) == 0)
