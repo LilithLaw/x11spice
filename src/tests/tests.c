@@ -27,7 +27,7 @@
 
 #include "tests.h"
 #include "util.h"
-#include "xcb.h"
+#include "xcbtest.h"
 #include "x11spice_test.h"
 
 static int test_common_start(test_t * test, x11spice_server_t * server,
@@ -138,7 +138,7 @@ void test_basic(xdummy_t *xdummy, gconstpointer user_data)
         return;
 
     snprintf(buf, sizeof(buf), ":%s", xdummy->display);
-    if (xcb_draw_grid(buf)) {
+    if (xcbtest_draw_grid(buf)) {
         g_warning("Could not draw the grid");
         g_test_fail();
     }
@@ -171,7 +171,7 @@ void test_resize(xdummy_t *xdummy, gconstpointer user_data)
         system(buf);
 
         snprintf(buf, sizeof(buf), ":%s", xdummy->display);
-        if (xcb_draw_grid(buf)) {
+        if (xcbtest_draw_grid(buf)) {
             g_warning("Could not draw the grid");
             g_test_fail();
             break;
@@ -204,7 +204,7 @@ void test_tallscreen(xdummy_t *xdummy, gconstpointer user_data)
     system(buf);
 
     snprintf(buf, sizeof(buf), ":%s", xdummy->display);
-    if (xcb_draw_grid(buf)) {
+    if (xcbtest_draw_grid(buf)) {
         g_warning("Could not draw the grid");
         g_test_fail();
     }

@@ -73,7 +73,7 @@ static void create_rectangles(xcb_rectangle_t * red, xcb_rectangle_t * green, in
         }
 }
 
-int xcb_draw_grid(const char *display)
+int xcbtest_draw_grid(const char *display)
 {
     uint32_t pixels[2];
 

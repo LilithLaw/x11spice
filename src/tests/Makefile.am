@@ -8,8 +8,8 @@ x11spice_test_SOURCES = \
     tests.h \
     x11spice_test.c \
     x11spice_test.h \
-    xcb.c \
-    xcb.h \
+    xcbtest.c \
+    xcbtest.h \
     xdummy.c \
     xdummy.h \
     util.c \

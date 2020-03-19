@@ -18,13 +18,13 @@
     along with x11spice.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef XCB_H_
-#define XCB_H_
+#ifndef XCBTEST_H_
+#define XCBTEST_H_
 
 
 /*----------------------------------------------------------------------------
 **  Prototypes
 **--------------------------------------------------------------------------*/
-int xcb_draw_grid(const char *display);
+int xcbtest_draw_grid(const char *display);
 
 #endif
