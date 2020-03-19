@@ -173,11 +173,20 @@ static void free_queue_item(gpointer data)
 static void push_tiles_report(scanner_t *scanner, int start_row, int start_col, int end_row,
                               int end_col)
 {
-    int x = (scanner->session->display.fullscreen->w / NUM_HORIZONTAL_TILES) * start_col;
-    int w = (scanner->session->display.fullscreen->w / NUM_HORIZONTAL_TILES) * (end_col - start_col + 1);
+    /* Note: we do this as integer math, and so we multiply first to avoid discarding
+       fractions in our calculations.  We also want to round down for our x, y, and
+       round up for our width and height calculations, as doesn't hurt to send more */
+    int x = (start_col * scanner->session->display.fullscreen->w) / NUM_HORIZONTAL_TILES;
+    int w = ((end_col - start_col + 1) * scanner->session->display.fullscreen->w) /
+        NUM_HORIZONTAL_TILES;
+    if (((end_col - start_col + 1) * scanner->session->display.fullscreen->w) %
+        NUM_HORIZONTAL_TILES)
+        w++;
 
-    int y = (scanner->session->display.fullscreen->h / NUM_SCANLINES) * start_row;
-    int h = scanner->session->display.fullscreen->h / NUM_SCANLINES * (end_row - start_row + 1);
+    int y = (start_row * scanner->session->display.fullscreen->h) / NUM_SCANLINES;
+    int h = ((end_row - start_row + 1) * scanner->session->display.fullscreen->h) / NUM_SCANLINES;
+    if (((end_row - start_row + 1) * scanner->session->display.fullscreen->h) % NUM_SCANLINES)
+        h++;
 
     if (x + w > scanner->session->display.fullscreen->w)
         w = scanner->session->display.fullscreen->w - x;
@@ -458,7 +467,7 @@ int scanner_push(scanner_t *scanner, scan_type_t type, int x, int y, int w, int 
     }
 
 #if defined(DEBUG_SCANLINES)
-    fprintf(stderr, "scan: %dx%d @ %dx%d\n", w, h, x, y);
+    fprintf(stderr, "scan: type %d, %dx%d @ %dx%d\n", type, w, h, x, y);
     fflush(stderr);
 #endif
 
