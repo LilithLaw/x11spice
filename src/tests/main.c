@@ -35,6 +35,9 @@ int main(int argc, char *argv[])
 
     g_test_add("/x11spice/resize", xdummy_t, "resize", start_server, test_resize, stop_server);
 
+    g_test_add("/x11spice/tallscreen", xdummy_t, "tallscreen", start_server, test_tallscreen,
+               stop_server);
+
     g_test_add("/x11spice/x11perf1", xdummy_t, "x11perf1", start_server, test_script, stop_server);
 
 #if defined(SPICEDUMMY)

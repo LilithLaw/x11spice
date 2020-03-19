@@ -125,7 +125,7 @@ static void check_screenshot(test_t *test, x11spice_server_t *spice_server, xdum
 
 void test_basic(xdummy_t *xdummy, gconstpointer user_data)
 {
-    test_t test;
+    test_t test = { };
     x11spice_server_t server;
     int rc;
     char buf[4096];
@@ -152,7 +152,7 @@ void test_basic(xdummy_t *xdummy, gconstpointer user_data)
 
 void test_resize(xdummy_t *xdummy, gconstpointer user_data)
 {
-    test_t test;
+    test_t test = { };
     x11spice_server_t server;
     int rc;
     char buf[4096];
@@ -185,6 +185,37 @@ void test_resize(xdummy_t *xdummy, gconstpointer user_data)
     test_common_stop(&test, &server);
 }
 
+void test_tallscreen(xdummy_t *xdummy, gconstpointer user_data)
+{
+    test_t test = { };
+    x11spice_server_t server;
+    int rc;
+    char buf[4096];
+
+    if (check_binary("xrandr", xdummy->display) || check_binary("spicy-screenshot", NULL))
+        return;
+
+    test.never_trust_damage = 1;
+    rc = test_common_start(&test, &server, xdummy, user_data);
+    if (rc)
+        return;
+
+    snprintf(buf, sizeof(buf), "xrandr --display :%s -s 3840x2160", xdummy->display);
+    system(buf);
+
+    snprintf(buf, sizeof(buf), ":%s", xdummy->display);
+    if (xcb_draw_grid(buf)) {
+        g_warning("Could not draw the grid");
+        g_test_fail();
+    }
+    else {
+        snprintf(buf, sizeof(buf), "%s/expected.grid.3840x2160.ppm", PATH_TO_TEST_SRC);
+        check_screenshot(&test, &server, xdummy, buf);
+    }
+
+    test_common_stop(&test, &server);
+}
+
 /*
 **  The 'script' type test is a special case.
 **  It is set up to allow us to run any shell script we like.
@@ -196,7 +227,7 @@ void test_resize(xdummy_t *xdummy, gconstpointer user_data)
 */
 void test_script(xdummy_t *xdummy, gconstpointer user_data)
 {
-    test_t test;
+    test_t test = { };
     x11spice_server_t server;
     xdummy_t client_server;
     char buf[4096];
@@ -206,7 +237,7 @@ void test_script(xdummy_t *xdummy, gconstpointer user_data)
     gchar *script_out;
     gchar *script_dir;
 
-    snprintf(buf, sizeof(buf), "%s/%s", PATH_TO_TEST_SRC, user_data);
+    snprintf(buf, sizeof(buf), "%s/%s", PATH_TO_TEST_SRC, (char *) user_data);
     if (access(buf, X_OK | R_OK)) {
         g_warning("Could not find client script [%s]", (char *) user_data);
         g_test_fail();

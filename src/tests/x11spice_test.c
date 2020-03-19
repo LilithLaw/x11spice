@@ -117,6 +117,8 @@ int x11spice_start(x11spice_server_t *server, test_t *test)
         char *config_data = "[spice]\n"
                             "disable-ticketing=true\n";
         fwrite(config_data, 1, strlen(config_data), fp);
+        if (test->never_trust_damage)
+            fprintf(fp, "trust-damage=never\n");
         fclose(fp);
     }
 

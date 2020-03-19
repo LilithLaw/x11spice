@@ -34,6 +34,7 @@ typedef struct
     xdummy_t *xserver;
     const gchar *logfile;
     const gchar *name;
+    int never_trust_damage;
 } test_t;
 
 
@@ -42,6 +43,7 @@ typedef struct
 **--------------------------------------------------------------------------*/
 void test_basic(xdummy_t *server, gconstpointer user_data);
 void test_resize(xdummy_t *server, gconstpointer user_data);
+void test_tallscreen(xdummy_t *server, gconstpointer user_data);
 void test_script(xdummy_t *xdummy, gconstpointer user_data);
 
 #endif

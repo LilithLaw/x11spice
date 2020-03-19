@@ -67,7 +67,7 @@ static void write_xorg_conf(FILE * fp, xdummy_t *server)
             "    Identifier     \"dummy_monitor\"\n"
             "    VendorName     \"Unknown\"\n"
             "    ModelName      \"Unknown\"\n"
-            "    HorizSync       30.0 - 130.0\n"
+            "    HorizSync        0.0 - 260.0\n"
             "    VertRefresh     50.0 - 250.0\n"
             "    Option         \"DPMS\"\n"
             "    Option         \"ReducedBlanking\"\n"
@@ -234,6 +234,12 @@ static void configure_xorg_parameters(xdummy_t *server, gconstpointer user_data)
         server->desired_vram = ((1920 * 1080 * 4) + 1023) / 1024;
         server->modes = "\"1920x1080\"";
         server->vmode = "1920 1080";
+    }
+
+    if (strcmp(user_data, "tallscreen") == 0) {
+        server->desired_vram = ((3840 * 2160 * 4) + 1023) / 1024;
+        server->modes = "\"3840x2160\"";
+        server->vmode = "3840 2160";
     }
 
     if (strlen(user_data) > 7 && memcmp(user_data, "client_", 7) == 0) {
