@@ -203,6 +203,7 @@ void test_tallscreen(xdummy_t *xdummy, gconstpointer user_data)
     snprintf(buf, sizeof(buf), "xrandr --display :%s -s 3840x2160", xdummy->display);
     system(buf);
 
+    /* Test basic drawing */
     snprintf(buf, sizeof(buf), ":%s", xdummy->display);
     if (xcbtest_draw_grid(buf)) {
         g_warning("Could not draw the grid");
@@ -210,6 +211,17 @@ void test_tallscreen(xdummy_t *xdummy, gconstpointer user_data)
     }
     else {
         snprintf(buf, sizeof(buf), "%s/expected.grid.3840x2160.ppm", PATH_TO_TEST_SRC);
+        check_screenshot(&test, &server, xdummy, buf);
+    }
+
+    /* Test drawing to the very bottom of the screen */
+    snprintf(buf, sizeof(buf), ":%s", xdummy->display);
+    if (xcbtest_draw_at_bottom(buf)) {
+        g_warning("Could not draw at the bottom");
+        g_test_fail();
+    }
+    else {
+        snprintf(buf, sizeof(buf), "%s/expected.grid.bottom.3840x2160.ppm", PATH_TO_TEST_SRC);
         check_screenshot(&test, &server, xdummy, buf);
     }
 

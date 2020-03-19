@@ -124,3 +124,45 @@ int xcbtest_draw_grid(const char *display)
 
     return 0;
 }
+
+int xcbtest_draw_at_bottom(const char *display)
+{
+    uint32_t red_pixel;
+
+    xcb_connection_t *c;
+    xcb_screen_t *screen;
+    xcb_gcontext_t red_fg;
+
+    xcb_void_cookie_t cookie;
+
+    xcb_rectangle_t red_rectangle;
+
+    /* Open the connection to the X server */
+    c = xcb_connect(display, NULL);
+    if (xcb_connection_has_error(c))
+        return 1;
+
+    /* Get the first screen */
+    screen = xcb_setup_roots_iterator(xcb_get_setup(c)).data;
+
+    red_fg = xcb_generate_id(c);
+    lookup_color(c, screen, "red", &red_pixel);
+    cookie = xcb_create_gc_checked(c, red_fg, screen->root, XCB_GC_FOREGROUND, &red_pixel);
+    xcb_request_check(c, cookie);
+
+    red_rectangle.width = screen->width_in_pixels;
+    red_rectangle.height = 8;
+    red_rectangle.x = 0;
+    red_rectangle.y = screen->height_in_pixels - red_rectangle.height * 2;
+
+    /* We draw the rectangles */
+    cookie = xcb_poly_fill_rectangle_checked(c, screen->root, red_fg, 1, &red_rectangle);
+    xcb_request_check(c, cookie);
+
+    /* We flush the request */
+    xcb_flush(c);
+
+    xcb_disconnect(c);
+
+    return 0;
+}

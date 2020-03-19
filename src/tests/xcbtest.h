@@ -26,5 +26,6 @@
 **  Prototypes
 **--------------------------------------------------------------------------*/
 int xcbtest_draw_grid(const char *display);
+int xcbtest_draw_at_bottom(const char *display);
 
 #endif
