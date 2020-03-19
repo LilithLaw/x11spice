@@ -688,5 +688,9 @@ void display_close(display_t *d)
 
 int display_trust_damage(display_t *d)
 {
-    return d->session->options.always_trust_damage || d->fullscreen_damage_count <= 2;
+    if (d->session->options.trust_damage == ALWAYS_TRUST)
+        return 1;
+    if (d->session->options.trust_damage == NEVER_TRUST)
+        return 0;
+    return d->fullscreen_damage_count <= 2;
 }

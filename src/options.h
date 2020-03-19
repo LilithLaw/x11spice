@@ -39,6 +39,8 @@ typedef struct {
     char *ciphersuite;
 } ssl_options_t;
 
+typedef enum { AUTO_TRUST, ALWAYS_TRUST, NEVER_TRUST } damage_trust_t;
+
 typedef struct {
     /* Both config and command line arguments */
     long timeout;
@@ -62,7 +64,7 @@ typedef struct {
     char *on_disconnect;
     int audit;
     int audit_message_type;
-    int always_trust_damage;
+    damage_trust_t trust_damage;
 
     /* file names of config files */
     char *user_config_file;

@@ -344,6 +344,7 @@ static void options_from_config(options_t *options)
 {
     GKeyFile *userkey = g_key_file_new();
     GKeyFile *systemkey = NULL;
+    char *trust_damage = NULL;
     int config_file_given = options->user_config_file ? TRUE : FALSE;
 
     if (!config_file_given) {
@@ -381,7 +382,14 @@ static void options_from_config(options_t *options)
     string_option(&options->on_disconnect, userkey, systemkey, "spice", "on-disconnect");
     options->audit = bool_option(userkey, systemkey, "spice", "audit");
     options->audit_message_type = int_option(userkey, systemkey, "spice", "audit-message-type");
-    options->always_trust_damage = bool_option(userkey, systemkey, "spice", "always-trust-damage");
+
+    string_option(&trust_damage, userkey, systemkey, "spice", "trust-damage");
+    options->trust_damage = AUTO_TRUST;
+    if (g_strcmp0(trust_damage, "always") == 0)
+        options->trust_damage = ALWAYS_TRUST;
+    if (g_strcmp0(trust_damage, "never") == 0)
+        options->trust_damage = NEVER_TRUST;
+    g_free(trust_damage);
 
 #if defined(HAVE_LIBAUDIT_H)
     /* Pick an arbitrary default in the user range.  CodeWeavers was founed in 1996, so 1196 it is... */
