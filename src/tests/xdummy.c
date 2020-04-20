@@ -39,6 +39,7 @@
 static void write_xorg_conf(FILE * fp, xdummy_t *server)
 {
 
+    /* *INDENT-OFF* - Prevent indent from changing style here */
     fprintf(fp,
             "# This xorg configuration file is meant to be used by x11spice\n"
             "# to start a dummy X11 server.\n"
@@ -102,6 +103,7 @@ static void write_xorg_conf(FILE * fp, xdummy_t *server)
             "  InputDevice  \"dummy_mouse\"\n"
             "  InputDevice  \"dummy_keyboard\"\n"
             "EndSection\n", server->desired_vram, server->modes, server->vmode);
+    /* *INDENT-ON* */
 }
 
 static int generate_paths(xdummy_t *server, gconstpointer user_data)
@@ -168,8 +170,7 @@ static void get_module_paths(const char *xorg_binary, char *module_paths, int si
             close(pipes[1]);
             execlp(xorg_binary, xorg_binary, "-showDefaultModulePath", NULL);
             exit(0);
-        }
-        else {
+        } else {
             waitpid(pid, NULL, 0);
             rc = read(pipes[0], module_paths, size - 2);
             if (rc > 0) {
@@ -226,11 +227,11 @@ static int exec_xorg(xdummy_t *server, gconstpointer user_data G_GNUC_UNUSED)
 
 static void configure_xorg_parameters(xdummy_t *server, gconstpointer user_data)
 {
-    server->desired_vram = ((1024 * 768 * 4) + 1023)/ 1024;
+    server->desired_vram = ((1024 * 768 * 4) + 1023) / 1024;
     server->modes = "\"1024x768\"";
     server->vmode = "1024 768";
 
-    if (strcmp(user_data , "resize") == 0) {
+    if (strcmp(user_data, "resize") == 0) {
         server->desired_vram = ((1920 * 1080 * 4) + 1023) / 1024;
         server->modes = "\"1920x1080\"";
         server->vmode = "1920 1080";
@@ -274,8 +275,7 @@ void start_server(xdummy_t *server, gconstpointer user_data)
         exec_xorg(server, user_data);
         g_warning("server exec failed.");
         exit(-1);
-    }
-    else {
+    } else {
         server->pipe = fd[0];
         close(fd[1]);
 

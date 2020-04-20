@@ -29,8 +29,7 @@
 /*----------------------------------------------------------------------------
 **  Structure definitions
 **--------------------------------------------------------------------------*/
-typedef struct
-{
+typedef struct {
     xdummy_t *xserver;
     const gchar *logfile;
     const gchar *name;

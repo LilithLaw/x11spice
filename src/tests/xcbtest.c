@@ -64,8 +64,7 @@ static void create_rectangles(xcb_rectangle_t * red, xcb_rectangle_t * green, in
                 red[r].x = x * (w / 8);
                 red[r].y = y * (h / 8);
                 r++;
-            }
-            else {
+            } else {
                 green[g].x = x * (w / 8);
                 green[g].y = y * (h / 8);
                 g++;

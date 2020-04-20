@@ -30,7 +30,7 @@
 #include "xcbtest.h"
 #include "x11spice_test.h"
 
-static int test_common_start(test_t * test, x11spice_server_t * server,
+static int test_common_start(test_t *test, x11spice_server_t *server,
                              xdummy_t *xserver, gconstpointer user_data)
 {
     int rc;
@@ -61,7 +61,7 @@ static int test_common_start(test_t * test, x11spice_server_t * server,
     return 0;
 }
 
-static void test_common_stop(test_t * test G_GNUC_UNUSED, x11spice_server_t * server)
+static void test_common_stop(test_t *test G_GNUC_UNUSED, x11spice_server_t *server)
 {
     x11spice_stop(server);
 }
@@ -145,8 +145,7 @@ void test_basic(xdummy_t *xdummy, gconstpointer user_data)
     if (xcbtest_draw_grid(buf)) {
         g_warning("Could not draw the grid");
         g_test_fail();
-    }
-    else {
+    } else {
         snprintf(buf, sizeof(buf), "%s/expected.grid.1024x768.ppm", PATH_TO_TEST_SRC);
         check_screenshot(&test, &server, xdummy, buf);
     }
@@ -170,7 +169,7 @@ void test_resize(xdummy_t *xdummy, gconstpointer user_data)
     if (rc)
         return;
 
-    for (i = 0; i < sizeof(modes) / sizeof(modes[0]) && ! g_test_failed(); i++) {
+    for (i = 0; i < sizeof(modes) / sizeof(modes[0]) && !g_test_failed(); i++) {
         snprintf(buf, sizeof(buf), "xrandr --display :%s -s %s", xdummy->display, modes[i]);
         system(buf);
 
@@ -179,8 +178,7 @@ void test_resize(xdummy_t *xdummy, gconstpointer user_data)
             g_warning("Could not draw the grid");
             g_test_fail();
             break;
-        }
-        else {
+        } else {
             snprintf(buf, sizeof(buf), "%s/expected.grid.%s.ppm", PATH_TO_TEST_SRC, modes[i]);
             check_screenshot(&test, &server, xdummy, buf);
         }
@@ -212,8 +210,7 @@ void test_tallscreen(xdummy_t *xdummy, gconstpointer user_data)
     if (xcbtest_draw_grid(buf)) {
         g_warning("Could not draw the grid");
         g_test_fail();
-    }
-    else {
+    } else {
         snprintf(buf, sizeof(buf), "%s/expected.grid.3840x2160.ppm", PATH_TO_TEST_SRC);
         check_screenshot(&test, &server, xdummy, buf);
     }
@@ -223,8 +220,7 @@ void test_tallscreen(xdummy_t *xdummy, gconstpointer user_data)
     if (xcbtest_draw_at_bottom(buf)) {
         g_warning("Could not draw at the bottom");
         g_test_fail();
-    }
-    else {
+    } else {
         snprintf(buf, sizeof(buf), "%s/expected.grid.bottom.3840x2160.ppm", PATH_TO_TEST_SRC);
         check_screenshot(&test, &server, xdummy, buf);
     }
@@ -266,7 +262,7 @@ void test_script(xdummy_t *xdummy, gconstpointer user_data)
 
     snprintf(buf, sizeof(buf), "client_%s", (char *) user_data);
     start_server(&client_server, buf);
-    if (! client_server.running) {
+    if (!client_server.running) {
         g_warning("Could not start client X server");
         g_test_skip("Could not start client X server");
     }
@@ -277,8 +273,8 @@ void test_script(xdummy_t *xdummy, gconstpointer user_data)
     script_out = g_test_build_filename(G_TEST_BUILT, "run", user_data, "script.out", NULL);
     script_dir = strdup(script_out);
     snprintf(buf, sizeof(buf), "%s/%s :%s :%s %s%s %s", PATH_TO_TEST_SRC, (char *) user_data,
-            xdummy->display, client_server.display, needs_prefix ? "spice://" : "",
-            server.uri, dirname(script_dir));
+             xdummy->display, client_server.display, needs_prefix ? "spice://" : "",
+             server.uri, dirname(script_dir));
     free(script_dir);
 
     g_message("Launching script %s; this could take some time.", (char *) user_data);
@@ -292,8 +288,7 @@ void test_script(xdummy_t *xdummy, gconstpointer user_data)
             if (WEXITSTATUS(rc) == 77) {
                 g_warning("Skipped script test [%s]", buf);
                 g_test_skip(buf);
-            }
-            else {
+            } else {
                 g_warning("Error running script [%s]; status %d", buf, rc);
                 g_test_fail();
             }

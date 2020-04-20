@@ -42,11 +42,13 @@ static int exec_x11spice(x11spice_server_t *server, gchar *display)
     dup2(server->pipe, fileno(stderr));
 
     if (valgrind)
-        snprintf(buf, sizeof(buf), "%s ../x11spice --display :%s localhost:5900-5999 --hide --config %s",
-                 valgrind, display, server->conffile);
-    else
-        snprintf(buf, sizeof(buf), "../x11spice --display :%s localhost:5900-5999 --hide --config %s",
+        snprintf(buf, sizeof(buf),
+                 "%s ../x11spice --display :%s localhost:5900-5999 --hide --config %s", valgrind,
                  display, server->conffile);
+    else
+        snprintf(buf, sizeof(buf),
+                 "../x11spice --display :%s localhost:5900-5999 --hide --config %s", display,
+                 server->conffile);
 
     return execl("/bin/sh", "sh", "-c", buf, NULL);
 
@@ -105,7 +107,8 @@ int x11spice_start(x11spice_server_t *server, test_t *test)
 
     server->running = FALSE;
 
-    server->conffile = g_test_build_filename(G_TEST_BUILT, "run", test->name, "x11spice.conf", NULL);
+    server->conffile =
+        g_test_build_filename(G_TEST_BUILT, "run", test->name, "x11spice.conf", NULL);
     if (!server->conffile) {
         g_warning("Failed to create conffile");
         g_test_fail();
@@ -114,8 +117,7 @@ int x11spice_start(x11spice_server_t *server, test_t *test)
 
     fp = fopen(server->conffile, "w");
     if (fp) {
-        char *config_data = "[spice]\n"
-                            "disable-ticketing=true\n";
+        char *config_data = "[spice]\ndisable-ticketing=true\n";
         fwrite(config_data, 1, strlen(config_data), fp);
         if (test->never_trust_damage)
             fprintf(fp, "trust-damage=never\n");
@@ -132,8 +134,7 @@ int x11spice_start(x11spice_server_t *server, test_t *test)
         exec_x11spice(server, test->xserver->display);
         g_warning("x11spice server exec failed.");
         return -1;
-    }
-    else {
+    } else {
         server->pipe = fd[0];
         close(fd[1]);
 

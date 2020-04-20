@@ -56,11 +56,8 @@ int spawn_command(char *cmd, char *output_file, int *pid)
             return -1;
 
         execl("/bin/sh", "sh", "-c", cmd, NULL);
-        g_error("exec of [%s] failed",cmd);
+        g_error("exec of [%s] failed", cmd);
     }
 
     return 0;
 }
-
-
-
