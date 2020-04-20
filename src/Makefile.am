@@ -48,3 +48,6 @@ EXTRA_DIST = \
 if HAVE_GTEST
     SUBDIRS = tests
 endif
+
+style: $(x11spice_SOURCES)
+	$(top_srcdir)/doc/spice_indent --dont-break-procedure-type $^

@@ -13,22 +13,21 @@
 #  func()
 #   That requires calling indent with some thoughtfulness
 # By default, it will break procedure types onto newlines
-#   if you have a file that does not do that, you may want
-#   to add
-# --dont-break-procedure-type
-# to your invocation.
+#   which is not always the desired behavior
+# Add  --dont-break-procedure-type  to change that
 
 
-if [ ! -f "$1" ] ; then
-    echo Error: specify a filename to process with indent
+if [ $# -lt 1 ] ; then
+    echo Error: specify at least one file to process with indent
     echo Usage:
-    echo   'spice_indent <filename> [ extra-options ]'
+    echo '  spice_indent [ extra-options ] <filename> [ filename... ]'
+    echo 'A useful option is --dont-break-procedure-type'
     exit 1
 fi
-fname="$1"
-shift
 
-indent "$fname" \
+# Run the indent command with no version control; we're using git after all...
+VERSION_CONTROL=none \
+indent \
   --no-space-after-function-call-names \
   --braces-after-func-def-line \
   --braces-on-if-line \

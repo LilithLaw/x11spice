@@ -39,3 +39,6 @@ spicedummy_drv_la_SOURCES = \
          display.c \
          dummy.h \
          present.c
+
+style: $(spicedummy_drv_la_SOURCES)
+	$(top_srcdir)/../doc/spice_indent $^

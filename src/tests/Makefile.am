@@ -39,3 +39,6 @@ callgrind.out.x:
 
 clean-local:
 	rm -f callgrind.out.*
+
+style: $(x11spice_test_SOURCES)
+	$(top_srcdir)/doc/spice_indent --dont-break-procedure-type $^
