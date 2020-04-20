@@ -331,7 +331,7 @@ DUMMYPreInit(ScrnInfoPtr pScrn, int flags)
     GDevPtr device = xf86GetEntityInfo(pScrn->entityList[0])->device;
 
     XkbRMLVOSet rmlvo = {
-        .rules   = (char *) "evdev"
+        .rules = (char *) "evdev"
     };
 
     if (flags & PROBE_DETECT) {
