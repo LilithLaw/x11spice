@@ -91,7 +91,7 @@ static void handle_cursor_notify(display_t *display,
     ir = xcb_xfixes_get_cursor_image_reply(display->c, icookie, &error);
     if (error) {
         g_warning("Could not get cursor_image_reply; type %d; code %d; major %d; minor %d\n",
-                error->response_type, error->error_code, error->major_code, error->minor_code);
+                  error->response_type, error->error_code, error->major_code, error->minor_code);
         return;
     }
 
@@ -149,8 +149,7 @@ static void handle_damage_notify(display_t *display, xcb_damage_notify_event_t *
             scanner_push(&display->session->scanner, DAMAGE_SCAN_REPORT,
                          p[i].x1, p[i].y1, p[i].x2 - p[i].x1, p[i].y2 - p[i].y1);
     } else {
-        scanner_push(&display->session->scanner, PERIODIC_SCAN_REQUEST,
-                         0, 0, 0, 0);
+        scanner_push(&display->session->scanner, PERIODIC_SCAN_REQUEST, 0, 0, 0, 0);
     }
 
     pixman_region_clear(damage_region);
@@ -523,7 +522,7 @@ shm_image_t *create_shm_image(display_t *d, unsigned int w, unsigned int h)
     error = xcb_request_check(d->c, cookie);
     if (error) {
         g_warning("Could not attach; type %d; code %d; major %d; minor %d\n",
-                error->response_type, error->error_code, error->major_code, error->minor_code);
+                  error->response_type, error->error_code, error->major_code, error->minor_code);
         return NULL;
     }
 
@@ -573,7 +572,6 @@ int display_find_changed_tiles(display_t *d, int row, int *tiles, int tiles_acro
             }
         }
     }
-
 #if defined(DEBUG_SCANLINES)
     fprintf(stderr, "%d: ", row);
     for (i = 0; i < tiles_across; i++)

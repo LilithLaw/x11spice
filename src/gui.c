@@ -56,7 +56,7 @@ void gui_remote_disconnected(gui_t *gui)
 
 void gui_disconnect_clicked(GtkWidget *widget G_GNUC_UNUSED, gpointer data)
 {
-    gui_t *gui = (gui_t *)data;
+    gui_t *gui = (gui_t *) data;
     session_disconnect_client(gui->session);
 }
 
@@ -127,14 +127,12 @@ void gui_report_error(gui_t *gui, const char *message)
 {
     GtkWidget *dialog;
 
-    dialog = gtk_message_dialog_new (GTK_WINDOW(gui->window),
-                GTK_DIALOG_DESTROY_WITH_PARENT,
-                GTK_MESSAGE_ERROR,
-                GTK_BUTTONS_CLOSE,
-                message);
+    dialog = gtk_message_dialog_new(GTK_WINDOW(gui->window),
+                                    GTK_DIALOG_DESTROY_WITH_PARENT,
+                                    GTK_MESSAGE_ERROR, GTK_BUTTONS_CLOSE, message);
 
-    gtk_dialog_run (GTK_DIALOG (dialog));
-    gtk_widget_destroy (dialog);
+    gtk_dialog_run(GTK_DIALOG(dialog));
+    gtk_widget_destroy(dialog);
 }
 
 #if defined(GUI_MAIN)

@@ -157,10 +157,10 @@ static int try_port(const char *addr, int port)
         close(sock);
 
         /*
-        **  Oddly, you seem to get situations where the ipv6 bind will fail,
-        **   with address in use; you can then try again and bind to the ipv4,
-        **   but you then go on to get other failures.
-        */
+         **  Oddly, you seem to get situations where the ipv6 bind will fail,
+         **   with address in use; you can then try again and bind to the ipv4,
+         **   but you then go on to get other failures.
+         */
         break;
     }
 

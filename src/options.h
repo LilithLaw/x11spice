@@ -30,7 +30,7 @@
 **  Structure definitions
 **--------------------------------------------------------------------------*/
 typedef struct {
-    int  enabled;
+    int enabled;
     char *ca_cert_file;
     char *certs_file;
     char *private_key_file;

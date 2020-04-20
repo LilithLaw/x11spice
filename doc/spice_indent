@@ -45,6 +45,8 @@ indent \
   --space-after-casts \
   --space-after-if \
   --cuddle-else \
+  -cd0 \
+  -c0 \
   -T agent_t \
   -T SpiceCharDeviceInstance \
   -T SpiceChannelEventInfo \
@@ -83,4 +85,7 @@ indent \
   -T test_t \
   -T Bool \
   -T shm_segment_t \
+  -T GtkWidget \
+  -T ssl_options_t \
+  -T GAsyncQueue \
   "$@"

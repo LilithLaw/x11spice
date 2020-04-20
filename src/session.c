@@ -129,7 +129,7 @@ int session_cursor_waiting(session_t *session)
 
 void session_handle_key(session_t *session, uint8_t keycode, int is_press)
 {
-    if (! session->options.allow_control)
+    if (!session->options.allow_control)
         return;
 
     xcb_test_fake_input(session->display.c, is_press ? XCB_KEY_PRESS : XCB_KEY_RELEASE,
@@ -141,7 +141,7 @@ void session_handle_key(session_t *session, uint8_t keycode, int is_press)
 void session_handle_mouse_position(session_t *session, int x, int y,
                                    uint32_t buttons_state G_GNUC_UNUSED)
 {
-    if (! session->options.allow_control)
+    if (!session->options.allow_control)
         return;
 
     xcb_test_fake_input(session->display.c, XCB_MOTION_NOTIFY, 0, XCB_CURRENT_TIME,
@@ -153,7 +153,7 @@ void session_handle_mouse_position(session_t *session, int x, int y,
 static void session_handle_button_change(session_t *s, uint32_t buttons_state)
 {
     int i;
-    if (! s->options.allow_control)
+    if (!s->options.allow_control)
         return;
 
     for (i = 0; i < BUTTONS; i++) {
@@ -176,7 +176,7 @@ static uint32_t convert_spice_buttons(int wheel, uint32_t buttons_state)
         (buttons_state & ~(SPICE_MOUSE_BUTTON_MASK_LEFT | SPICE_MOUSE_BUTTON_MASK_MIDDLE
                            | SPICE_MOUSE_BUTTON_MASK_RIGHT));
     return buttons_state | (wheel > 0 ? (1 << 4) : 0)
-                         | (wheel < 0 ? (1 << 3) : 0);
+        | (wheel < 0 ? (1 << 3) : 0);
 }
 
 
@@ -258,19 +258,15 @@ static int begin_audit(session_t *s)
     int rc = X11SPICE_ERR_NOAUDIT;
 #if defined(HAVE_LIBAUDIT) && defined(HAVE_LIBAUDIT_H)
     s->audit_id = audit_open();
-    if (s->audit_id != -1)
-    {
+    if (s->audit_id != -1) {
         rc = audit_log_user_message(s->audit_id, s->options.audit_message_type,
-            "x11spice begin", NULL, NULL, NULL, 1);
-        if (rc <= 0)
-        {
+                                    "x11spice begin", NULL, NULL, NULL, 1);
+        if (rc <= 0) {
             perror("audit_log_user_message");
             rc = X11SPICE_ERR_NOAUDIT;
-        }
-        else
+        } else
             rc = 0;
-    }
-    else
+    } else
         perror("audit_open");
 #else
     fprintf(stderr, "Error: audit requested, but not libaudit available.\n");
@@ -281,10 +277,9 @@ static int begin_audit(session_t *s)
 static void end_audit(session_t *s)
 {
 #if defined(HAVE_LIBAUDIT) && defined(HAVE_LIBAUDIT_H)
-    if (s->audit_id != -1)
-    {
+    if (s->audit_id != -1) {
         audit_log_user_message(s->audit_id, s->options.audit_message_type,
-            "x11spice close", NULL, NULL, NULL, 1);
+                               "x11spice close", NULL, NULL, NULL, 1);
         audit_close(s->audit_id);
     }
     s->audit_id = -1;
@@ -441,7 +436,8 @@ int session_get_one_led(session_t *session, const char *name)
                                                    XCB_XKB_ID_DFLT_XI_ID, atom_reply->atom);
     free(atom_reply);
 
-    indicator_reply = xcb_xkb_get_named_indicator_reply(session->display.c, indicator_cookie, &error);
+    indicator_reply =
+        xcb_xkb_get_named_indicator_reply(session->display.c, indicator_cookie, &error);
     if (error) {
         g_warning("Could not get indicator; type %d; code %d; major %d; minor %d",
                   error->response_type, error->error_code, error->major_code, error->minor_code);
@@ -456,12 +452,12 @@ int session_get_one_led(session_t *session, const char *name)
 void session_disconnect_client(session_t *session)
 {
     /* 
-    ** TODO: This is using a side effect of set_ticket that is not intentional.
-    **       It would be better to ask for a deliberate method of achieving this result.
-    */
+     ** TODO: This is using a side effect of set_ticket that is not intentional.
+     **       It would be better to ask for a deliberate method of achieving this result.
+     */
     g_debug("client disconnect");
     spice_server_set_ticket(session->spice.server, session->options.spice_password, 0, 0, TRUE);
-    if (! session->options.spice_password || session->options.disable_ticketing)
+    if (!session->options.spice_password || session->options.disable_ticketing)
         spice_server_set_noauth(session->spice.server);
 }
 
@@ -470,10 +466,9 @@ static void invoke_on_connect(session_t *session, const char *from)
     if (session->connect_pid)
         cleanup_process(session->connect_pid);
     session->connect_pid = fork();
-    if (session->connect_pid == 0)
-    {
+    if (session->connect_pid == 0) {
         /* TODO:  If would be nice to either close the spice socket after
-              the fork, or to get CLOEXEC set on the socket after open. */
+           the fork, or to get CLOEXEC set on the socket after open. */
         setsid();
         execl(session->options.on_connect, session->options.on_connect, from, NULL);
         g_error("Exec of connect command [%s %s] failed", session->options.on_connect, from);
@@ -491,10 +486,9 @@ static void invoke_on_disconnect(session_t *session)
         cleanup_process(session->disconnect_pid);
 
     session->disconnect_pid = fork();
-    if (session->disconnect_pid == 0)
-    {
+    if (session->disconnect_pid == 0) {
         /* TODO:  If would be nice to either close the spice socket after
-              the fork, or to get CLOEXEC set on the socket after open. */
+           the fork, or to get CLOEXEC set on the socket after open. */
         setsid();
         execl(session->options.on_disconnect, session->options.on_disconnect, NULL);
         g_error("Exec of disconnect command [%s] failed", session->options.on_disconnect);
@@ -504,7 +498,7 @@ static void invoke_on_disconnect(session_t *session)
 
 void session_remote_connected(const char *from)
 {
-    #define GUI_FROM_PREFIX "Connection from "
+#define GUI_FROM_PREFIX "Connection from "
     char *from_string;
     if (!global_session || global_session->connected)
         return;
@@ -512,8 +506,7 @@ void session_remote_connected(const char *from)
     global_session->connected = TRUE;
 
     from_string = calloc(1, strlen(from) + strlen(GUI_FROM_PREFIX) + 1);
-    if (from_string)
-    {
+    if (from_string) {
         strcpy(from_string, GUI_FROM_PREFIX);
         strcat(from_string, from);
         gui_remote_connected(&global_session->gui, from_string);
@@ -525,7 +518,7 @@ void session_remote_connected(const char *from)
 #if defined(HAVE_LIBAUDIT)
     if (global_session->options.audit && global_session->audit_id != -1)
         audit_log_user_message(global_session->audit_id, global_session->options.audit_message_type,
-            "x11spice connect", NULL, NULL, NULL, 1);
+                               "x11spice connect", NULL, NULL, NULL, 1);
 #endif
 }
 
@@ -542,6 +535,6 @@ void session_remote_disconnected(void)
 #if defined(HAVE_LIBAUDIT)
     if (global_session->options.audit && global_session->audit_id != -1)
         audit_log_user_message(global_session->audit_id, global_session->options.audit_message_type,
-            "x11spice disconnect", NULL, NULL, NULL, 1);
+                               "x11spice disconnect", NULL, NULL, NULL, 1);
 #endif
 }

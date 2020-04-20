@@ -147,16 +147,14 @@ static void handle_scan_report(session_t *session, scan_report_t *r)
             g_async_queue_push(session->draw_queue, drawable);
             spice_qxl_wakeup(&session->spice.display_sin);
             /*
-            **  NOTE: the shmi is intentionally not freed at this point.
-            **        The call path will take care of that once it's been
-            **        pushed to Spice.
-            */
+             **  NOTE: the shmi is intentionally not freed at this point.
+             **        The call path will take care of that once it's been
+             **        pushed to Spice.
+             */
             return;
-        }
-        else
+        } else
             g_debug("Unexpected failure to create drawable");
-    }
-    else
+    } else
         g_debug("Unexpected failure to read shm of area %dx%d", r->w, r->h);
 
     if (shmi)
@@ -197,8 +195,7 @@ static void push_tiles_report(scanner_t *scanner, int start_row, int start_col, 
 
 static void grow_changed_tiles(scanner_t *scanner G_GNUC_UNUSED,
                                int *tiles_changed_in_row,
-                               int tiles_changed[][NUM_HORIZONTAL_TILES],
-                               int num_vertical_tiles)
+                               int tiles_changed[][NUM_HORIZONTAL_TILES], int num_vertical_tiles)
 {
     int i;
     int j;
@@ -242,7 +239,8 @@ static void grow_changed_tiles(scanner_t *scanner G_GNUC_UNUSED,
     }
 }
 
-static void push_changes_across_rows(scanner_t *scanner, int *tiles_changed_in_row, int num_vertical_tiles)
+static void push_changes_across_rows(scanner_t *scanner, int *tiles_changed_in_row,
+                                     int num_vertical_tiles)
 {
     int i = 0;
     int start_row = -1;
@@ -253,8 +251,7 @@ static void push_changes_across_rows(scanner_t *scanner, int *tiles_changed_in_r
             if (start_row == -1)
                 start_row = i;
             current_row = i;
-        }
-        else {
+        } else {
             if (current_row != -1) {
                 push_tiles_report(scanner, start_row, 0, current_row, NUM_HORIZONTAL_TILES - 1);
                 start_row = current_row = -1;
@@ -291,8 +288,7 @@ static void push_changes_in_one_row(scanner_t *scanner, int row, int *tiles_chan
 }
 
 static void push_changed_tiles(scanner_t *scanner, int *tiles_changed_in_row,
-                               int tiles_changed[][NUM_HORIZONTAL_TILES],
-                               int num_vertical_tiles)
+                               int tiles_changed[][NUM_HORIZONTAL_TILES], int num_vertical_tiles)
 {
     int i = 0;
 
@@ -456,19 +452,16 @@ int scanner_push(scanner_t *scanner, scan_type_t type, int x, int y, int w, int 
                 pixman_region_union_rect(&scanner->region, &scanner->region, x, y, w, h);
 
                 g_async_queue_push(scanner->queue, r);
-            }
-            else {
+            } else {
                 free(r);
             }
             rc = 0;
-        }
-        else {
+        } else {
             free(r);
             rc = X11SPICE_ERR_SHUTTING_DOWN;
         }
         g_mutex_unlock(scanner->lock);
     }
-
 #if defined(DEBUG_SCANLINES)
     fprintf(stderr, "scan: type %d, %dx%d @ %dx%d\n", type, w, h, x, y);
     fflush(stderr);

@@ -83,7 +83,8 @@ void options_free(options_t *options)
 }
 
 
-static void string_option(gchar **dest, GKeyFile *u, GKeyFile *s, const gchar *section, const gchar *key)
+static void string_option(gchar **dest, GKeyFile *u, GKeyFile *s, const gchar *section,
+                          const gchar *key)
 {
     gchar *ret = NULL;
     GError *error = NULL;
@@ -171,29 +172,29 @@ static int options_handle_ssl(options_t *options, const char *spec)
         if (strlen(p) == 0)
             continue;
 
-        switch(i) {
-            case 0:
-                str_replace(&options->ssl.ca_cert_file, p);
-                break;
-            case 1:
-                str_replace(&options->ssl.certs_file, p);
-                break;
-            case 2:
-                str_replace(&options->ssl.private_key_file, p);
-                break;
-            case 3:
-                str_replace(&options->ssl.key_password, p);
-                break;
-            case 4:
-                str_replace(&options->ssl.dh_key_file, p);
-                break;
-            case 5:
-                str_replace(&options->ssl.ciphersuite, p);
-                break;
-            default:
-                fprintf(stderr, "Error: invalid ssl specification.");
-                rc = X11SPICE_ERR_BADARGS;
-                break;
+        switch (i) {
+        case 0:
+            str_replace(&options->ssl.ca_cert_file, p);
+            break;
+        case 1:
+            str_replace(&options->ssl.certs_file, p);
+            break;
+        case 2:
+            str_replace(&options->ssl.private_key_file, p);
+            break;
+        case 3:
+            str_replace(&options->ssl.key_password, p);
+            break;
+        case 4:
+            str_replace(&options->ssl.dh_key_file, p);
+            break;
+        case 5:
+            str_replace(&options->ssl.ciphersuite, p);
+            break;
+        default:
+            fprintf(stderr, "Error: invalid ssl specification.");
+            rc = X11SPICE_ERR_BADARGS;
+            break;
         }
     }
 
@@ -202,7 +203,7 @@ static int options_handle_ssl(options_t *options, const char *spec)
 }
 
 static void options_handle_ssl_file_options(options_t *options,
-                                     GKeyFile *userkey, GKeyFile *systemkey)
+                                            GKeyFile *userkey, GKeyFile *systemkey)
 {
     options->ssl.enabled = bool_option(userkey, systemkey, "ssl", "enabled");
     string_option(&options->ssl.ca_cert_file, userkey, systemkey, "ssl", "ca-cert-file");
@@ -218,13 +219,14 @@ static int options_parse_arguments(int argc, char *argv[], options_t *options)
     int rc;
     int longindex = 0;
 
-    enum option_types {  OPTION_ALLOW_CONTROL, OPTION_DISALLOW_CONTROL,
-                         OPTION_TIMEOUT, OPTION_AUTO, OPTION_HIDE,
-                         OPTION_PASSWORD, OPTION_PASSWORD_FILE, OPTION_CONFIG, OPTION_SSL,
-                         OPTION_GENERATE_PASSWORD, OPTION_DISPLAY, OPTION_MINIMIZE,
-                         OPTION_HELP
+    enum option_types { OPTION_ALLOW_CONTROL, OPTION_DISALLOW_CONTROL,
+        OPTION_TIMEOUT, OPTION_AUTO, OPTION_HIDE,
+        OPTION_PASSWORD, OPTION_PASSWORD_FILE, OPTION_CONFIG, OPTION_SSL,
+        OPTION_GENERATE_PASSWORD, OPTION_DISPLAY, OPTION_MINIMIZE,
+        OPTION_HELP
     };
 
+    /* *INDENT-OFF* - Prevent indent from shifting style on us */
     static struct option long_options[] =
     {
         {"allow-control",            0, 0,       OPTION_ALLOW_CONTROL },
@@ -242,6 +244,7 @@ static int options_parse_arguments(int argc, char *argv[], options_t *options)
         {"help",                     0, 0,       OPTION_HELP},
         {0, 0, 0, 0}
     };
+    /* *INDENT-ON* */
 
     optind = 1; /* Allow reuse of this function */
     while (1) {
@@ -252,60 +255,60 @@ static int options_parse_arguments(int argc, char *argv[], options_t *options)
         }
 
         switch (rc) {
-            case OPTION_ALLOW_CONTROL:
-                options->allow_control = 1;
-                break;
+        case OPTION_ALLOW_CONTROL:
+            options->allow_control = 1;
+            break;
 
-            case OPTION_DISALLOW_CONTROL:
-                options->allow_control = 0;
-                break;
+        case OPTION_DISALLOW_CONTROL:
+            options->allow_control = 0;
+            break;
 
-            case OPTION_TIMEOUT:
-                options->timeout = atol(optarg);
-                break;
+        case OPTION_TIMEOUT:
+            options->timeout = atol(optarg);
+            break;
 
-            case OPTION_HIDE:
-                options->hide = 1;
-                break;
+        case OPTION_HIDE:
+            options->hide = 1;
+            break;
 
-            case OPTION_PASSWORD:
-                str_replace(&options->spice_password, optarg);
-                break;
+        case OPTION_PASSWORD:
+            str_replace(&options->spice_password, optarg);
+            break;
 
-            case OPTION_PASSWORD_FILE:
-                str_replace(&options->password_file, optarg);
-                break;
+        case OPTION_PASSWORD_FILE:
+            str_replace(&options->password_file, optarg);
+            break;
 
-            case OPTION_CONFIG:
-                str_replace(&options->user_config_file, optarg);
-                break;
+        case OPTION_CONFIG:
+            str_replace(&options->user_config_file, optarg);
+            break;
 
-            case OPTION_SSL:
-                options->ssl.enabled = 1;
-                if (optarg) {
-                    rc = options_handle_ssl(options, optarg);
-                    if (rc)
-                        return rc;
-                }
-                break;
+        case OPTION_SSL:
+            options->ssl.enabled = 1;
+            if (optarg) {
+                rc = options_handle_ssl(options, optarg);
+                if (rc)
+                    return rc;
+            }
+            break;
 
-            case OPTION_GENERATE_PASSWORD:
-                options->generate_password = DEFAULT_PASSWORD_LENGTH;
-                if (optarg)
-                    options->generate_password = atol(optarg);
-                break;
+        case OPTION_GENERATE_PASSWORD:
+            options->generate_password = DEFAULT_PASSWORD_LENGTH;
+            if (optarg)
+                options->generate_password = atol(optarg);
+            break;
 
-            case OPTION_DISPLAY:
-                str_replace(&options->display, optarg);
-                break;
+        case OPTION_DISPLAY:
+            str_replace(&options->display, optarg);
+            break;
 
-            case OPTION_MINIMIZE:
-                options->minimize = 1;
-                break;
+        case OPTION_MINIMIZE:
+            options->minimize = 1;
+            break;
 
-            default:
-                usage(argv[0]);
-                return X11SPICE_ERR_BADARGS;
+        default:
+            usage(argv[0]);
+            return X11SPICE_ERR_BADARGS;
         }
     }
 
@@ -317,7 +320,7 @@ static int options_parse_arguments(int argc, char *argv[], options_t *options)
         count += options->generate_password ? 1 : 0;
         if (count > 1) {
             fprintf(stderr, "Error: you can specify only one of password, password-file, "
-                            "and generate-password\n");
+                    "and generate-password\n");
             rc = X11SPICE_ERR_BADARGS;
         }
     }
@@ -348,7 +351,8 @@ static void options_from_config(options_t *options)
     int config_file_given = options->user_config_file ? TRUE : FALSE;
 
     if (!config_file_given) {
-        options->user_config_file = g_build_filename(g_get_user_config_dir(), "x11spice/x11spice.conf", NULL);
+        options->user_config_file =
+            g_build_filename(g_get_user_config_dir(), "x11spice/x11spice.conf", NULL);
 
         systemkey = g_key_file_new();
         if (!g_key_file_load_from_dirs(systemkey, "x11spice/x11spice.conf",
@@ -419,8 +423,7 @@ static int process_password_file(options_t *options)
         printf("Enter password: ");
         fflush(stdout);
         fp = stdin;
-    }
-    else {
+    } else {
         fp = fopen(options->password_file, "r");
         if (!fp)
             return X11SPICE_ERR_OPEN;
@@ -496,7 +499,7 @@ int options_load(options_t *options, int argc, char *argv[])
     if (rc == 0) {
         options_from_config(options);
         /* We parse command line arguments a second time to ensure
-        **  that command line options take precedence over config files */
+         **  that command line options take precedence over config files */
         rc = options_parse_arguments(argc, argv, options);
         if (rc == 0)
             rc = options_process_io(options);

@@ -274,8 +274,7 @@ static int req_cmd_notification(QXLInstance *qin)
     return 1;
 }
 
-static void release_resource(QXLInstance *qin G_GNUC_UNUSED,
-                             struct QXLReleaseInfoExt release_info)
+static void release_resource(QXLInstance *qin G_GNUC_UNUSED, struct QXLReleaseInfoExt release_info)
 {
     spice_free_release((spice_release_t *) (uintptr_t) release_info.info->id);
 }
@@ -341,6 +340,7 @@ static void update_area_complete(QXLInstance *qin G_GNUC_UNUSED,
  *   xf86PostKeyboardEvent(device, scanCode + MIN_KEYCODE, down); */
 #define MIN_KEYCODE     8
 
+/* *INDENT-OFF* - Prevent indent from shifting style on us */
 static uint8_t escaped_map[256] = {
     [0x1c] = 104,               //KEY_KP_Enter,
     [0x1d] = 105,               //KEY_RCtrl,
@@ -364,6 +364,7 @@ static uint8_t escaped_map[256] = {
     [0x5c] = 134,               //0, // REDKEY_RIGHT_CMD,
     [0x5d] = 135,               //KEY_Menu,
 };
+/* *INDENT-ON* */
 
 static void kbd_push_key(SpiceKbdInstance *sin, uint8_t frag)
 {
@@ -382,8 +383,7 @@ static void kbd_push_key(SpiceKbdInstance *sin, uint8_t frag)
             g_warning("spiceqxl_inputs.c: kbd_push_key: escaped_map[%d] == 0", frag);
         }
         frag = escaped_map[frag];
-    }
-    else {
+    } else {
         frag += MIN_KEYCODE;
     }
 
@@ -522,9 +522,9 @@ void initialize_spice_instance(spice_t *s)
         .flush_resources = flush_resources,
         .async_complete = async_complete,
         .update_area_complete = update_area_complete,
-        .client_monitors_config = NULL,     /* Specifying NULL here causes
-                                               the better logic in the agent
-                                               to operate */
+        .client_monitors_config = NULL, /* Specifying NULL here causes
+                                           the better logic in the agent
+                                           to operate */
         .set_client_capabilities = NULL,    /* Allowed to be unset */
     };
 
@@ -583,7 +583,7 @@ static int try_listen(spice_t *s, options_t *options)
         return rc;
 
     if (start != -1) {
-        fd  = listen_find_open_port(addr, start, port, &port);
+        fd = listen_find_open_port(addr, start, port, &port);
         fflush(stdout);
 
         if (fd >= 0)
@@ -599,12 +599,11 @@ static int try_listen(spice_t *s, options_t *options)
 
     if (options->ssl.enabled) {
         spice_server_set_tls(s->server, port,
-                            options->ssl.ca_cert_file,
-                            options->ssl.certs_file,
-                            options->ssl.private_key_file,
-                            options->ssl.key_password,
-                            options->ssl.dh_key_file,
-                            options->ssl.ciphersuite);
+                             options->ssl.ca_cert_file,
+                             options->ssl.certs_file,
+                             options->ssl.private_key_file,
+                             options->ssl.key_password,
+                             options->ssl.dh_key_file, options->ssl.ciphersuite);
     } else {
         spice_server_set_port(s->server, port);
     }
@@ -693,13 +692,13 @@ void spice_free_release(spice_release_t *r)
         return;
 
     switch (r->type) {
-        case RELEASE_SHMI:
-            destroy_shm_image(&r->s->session->display, (shm_image_t *) r->data);
-            break;
+    case RELEASE_SHMI:
+        destroy_shm_image(&r->s->session->display, (shm_image_t *) r->data);
+        break;
 
-        case RELEASE_MEMORY:
-            free(r->data);
-            break;
+    case RELEASE_MEMORY:
+        free(r->data);
+        break;
     }
 
     free(r);

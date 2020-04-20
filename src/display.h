@@ -32,7 +32,7 @@ struct session_struct;
 **  Structure definitions
 **--------------------------------------------------------------------------*/
 typedef struct {
-    int shmid;      /* if shmid is -1: the shm_segment_t is "empty", other members are undefined */
+    int shmid;  /* if shmid is -1: the shm_segment_t is "empty", other members are undefined */
     size_t size;
     xcb_shm_seg_t shmseg;
     void *shmaddr;

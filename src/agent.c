@@ -42,15 +42,15 @@ static void uinput_handle_key(agent_t *agent, struct input_event *ev)
     int button = 0;
 
     switch (ev->code) {
-        case BTN_LEFT:
-            button = 1 << 0;
-            break;
-        case BTN_MIDDLE:
-            button = 1 << 2;
-            break;
-        case BTN_RIGHT:
-            button = 1 << 1;
-            break;
+    case BTN_LEFT:
+        button = 1 << 0;
+        break;
+    case BTN_MIDDLE:
+        button = 1 << 2;
+        break;
+    case BTN_RIGHT:
+        button = 1 << 1;
+        break;
     }
 
     if (ev->value > 0)
@@ -78,16 +78,16 @@ static void uinput_handle_relative(agent_t *agent, struct input_event *ev)
 static void uinput_handle_absolute(agent_t *agent, struct input_event *ev)
 {
     switch (ev->code) {
-        case ABS_X:
-            agent->uinput_x = ev->value;
-            break;
-        case ABS_Y:
-            agent->uinput_y = ev->value;
-            break;
-        default:
-            g_debug("%s: unknown axis %d, ignoring\n", __func__, ev->code);
-            return;
-            break;
+    case ABS_X:
+        agent->uinput_x = ev->value;
+        break;
+    case ABS_Y:
+        agent->uinput_y = ev->value;
+        break;
+    default:
+        g_debug("%s: unknown axis %d, ignoring\n", __func__, ev->code);
+        return;
+        break;
     }
     session_handle_mouse_position(agent->spice->session, agent->uinput_x, agent->uinput_y,
                                   agent->uinput_buttons_state);
@@ -117,17 +117,17 @@ static void uinput_read_cb(int fd G_GNUC_UNUSED, int event G_GNUC_UNUSED, void *
             memmove(agent->uinput_buffer, agent->uinput_buffer + sizeof(*ev), agent->uinput_offset);
 
         switch (ev->type) {
-            case EV_KEY:
-                uinput_handle_key(agent, ev);
-                break;
+        case EV_KEY:
+            uinput_handle_key(agent, ev);
+            break;
 
-            case EV_REL:
-                uinput_handle_relative(agent, ev);
-                break;
+        case EV_REL:
+            uinput_handle_relative(agent, ev);
+            break;
 
-            case EV_ABS:
-                uinput_handle_absolute(agent, ev);
-                break;
+        case EV_ABS:
+            uinput_handle_absolute(agent, ev);
+            break;
         }
     }
 
