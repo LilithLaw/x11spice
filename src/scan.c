@@ -428,42 +428,52 @@ int scanner_destroy(scanner_t *scanner)
 
 int scanner_push(scanner_t *scanner, scan_type_t type, int x, int y, int w, int h)
 {
-    int rc = X11SPICE_ERR_MALLOC;
-    scan_report_t *r = malloc(sizeof(*r));
+    scan_report_t *r;
 
-    if (r) {
-        r->type = type;
-        r->x = x;
-        r->y = y;
-        r->w = w;
-        r->h = h;
-
-        g_mutex_lock(scanner->lock);
-        if (scanner->queue) {
-            pixman_box16_t rect;
-            rect.x1 = x;
-            rect.x2 = x + w;
-            rect.y1 = y;
-            rect.y2 = y + h;
-
-            if (!pixman_region_contains_rectangle(&scanner->region, &rect)) {
-                pixman_region_union_rect(&scanner->region, &scanner->region, x, y, w, h);
-
-                g_async_queue_push(scanner->queue, r);
-            } else {
-                free(r);
-            }
-            rc = 0;
-        } else {
-            free(r);
-            rc = X11SPICE_ERR_SHUTTING_DOWN;
-        }
-        g_mutex_unlock(scanner->lock);
-    }
 #if defined(DEBUG_SCANLINES)
     fprintf(stderr, "scan: type %d, %dx%d @ %dx%d\n", type, w, h, x, y);
     fflush(stderr);
 #endif
 
-    return rc;
+    g_mutex_lock(scanner->lock);
+
+    if (!scanner->queue) {
+        g_mutex_unlock(scanner->lock);
+        return X11SPICE_ERR_SHUTTING_DOWN;
+    }
+
+    r = malloc(sizeof(*r));
+    if (!r) {
+        g_mutex_unlock(scanner->lock);
+        return X11SPICE_ERR_MALLOC;
+    }
+
+    r->type = type;
+    r->x = x;
+    r->y = y;
+    r->w = w;
+    r->h = h;
+
+    if (type == SCANLINE_SCAN_REPORT || type == DAMAGE_SCAN_REPORT) {
+        pixman_box16_t rect;
+        rect.x1 = x;
+        rect.x2 = x + w;
+        rect.y1 = y;
+        rect.y2 = y + h;
+
+        /* Optimization: if we're being notified of an area already to be
+           rescanned, just discard this notice, otherwise update region and push */
+        if (pixman_region_contains_rectangle(&scanner->region, &rect)) {
+            free(r);
+        } else {
+            pixman_region_union_rect(&scanner->region, &scanner->region, x, y, w, h);
+            g_async_queue_push(scanner->queue, r);
+        }
+    } else {
+        g_async_queue_push(scanner->queue, r);
+    }
+
+    g_mutex_unlock(scanner->lock);
+
+    return 0;
 }
