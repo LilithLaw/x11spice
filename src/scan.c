@@ -369,7 +369,6 @@ static void *scanner_run(void *opaque)
             scanner_periodic(scanner);
             continue;
         }
-        scan_update_fps(scanner, 1);
 
         if (r->type == PERIODIC_SCAN_REQUEST) {
             free_queue_item(r);
@@ -382,6 +381,8 @@ static void *scanner_run(void *opaque)
             break;
         }
 
+        /* Remaining scan types affect a region of the screen */
+        scan_update_fps(scanner, 1);
         scanner_remove_region(scanner, r);
 
         handle_scan_report(scanner->session, r);
