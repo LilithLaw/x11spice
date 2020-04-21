@@ -451,10 +451,8 @@ int session_get_one_led(session_t *session, const char *name)
 
 void session_disconnect_client(session_t *session)
 {
-    /* 
-     ** TODO: This is using a side effect of set_ticket that is not intentional.
-     **       It would be better to ask for a deliberate method of achieving this result.
-     */
+    /* TODO: This is using a side effect of set_ticket that is not intentional.
+       It would be better to ask for a deliberate method of achieving this result.  */
     g_debug("client disconnect");
     spice_server_set_ticket(session->spice.server, session->options.spice_password, 0, 0, TRUE);
     if (!session->options.spice_password || session->options.disable_ticketing)

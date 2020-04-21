@@ -146,11 +146,9 @@ static void handle_scan_report(session_t *session, scan_report_t *r)
         if (drawable) {
             g_async_queue_push(session->draw_queue, drawable);
             spice_qxl_wakeup(&session->spice.display_sin);
-            /*
-             **  NOTE: the shmi is intentionally not freed at this point.
-             **        The call path will take care of that once it's been
-             **        pushed to Spice.
-             */
+            /* NOTE: the shmi is intentionally not freed at this point.
+               The call path will take care of that once it's been
+               pushed to Spice. */
             return;
         } else
             g_debug("Unexpected failure to create drawable");

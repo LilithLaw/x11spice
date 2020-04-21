@@ -499,7 +499,7 @@ int options_load(options_t *options, int argc, char *argv[])
     if (rc == 0) {
         options_from_config(options);
         /* We parse command line arguments a second time to ensure
-         **  that command line options take precedence over config files */
+           that command line options take precedence over config files */
         rc = options_parse_arguments(argc, argv, options);
         if (rc == 0)
             rc = options_process_io(options);

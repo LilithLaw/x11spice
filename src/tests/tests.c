@@ -228,15 +228,13 @@ void test_tallscreen(xdummy_t *xdummy, gconstpointer user_data)
     test_common_stop(&test, &server);
 }
 
-/*
-**  The 'script' type test is a special case.
-**  It is set up to allow us to run any shell script we like.
-**  It will start a dummy X server, attach a spice server to it.
-**  Then it will start *another* dummy X server, and pass the information
-**  about both X servers to the script.
-**  The second dummy server allows us to run the spicy client and actually
-**  test true spice functionality.
-*/
+/* The 'script' type test is a special case.
+   It is set up to allow us to run any shell script we like.
+   It will start a dummy X server, attach a spice server to it.
+   Then it will start *another* dummy X server, and pass the information
+   about both X servers to the script.
+   The second dummy server allows us to run the spicy client and actually
+   test true spice functionality.  */
 void test_script(xdummy_t *xdummy, gconstpointer user_data)
 {
     test_t test = { };

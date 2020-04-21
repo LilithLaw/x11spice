@@ -228,7 +228,7 @@ static void set_compression_level(QXLInstance *qin, int level)
 }
 
 /* Newer spice servers no longer transmit this information,
- * so let's just disregard it */
+   so let's just disregard it */
 static void set_mm_time(QXLInstance *qin G_GNUC_UNUSED, uint32_t mm_time G_GNUC_UNUSED)
 {
 }
@@ -334,10 +334,10 @@ static void update_area_complete(QXLInstance *qin G_GNUC_UNUSED,
 }
 
 /* spice sends AT scancodes (with a strange escape).
- * But xf86PostKeyboardEvent expects scancodes. Apparently most of the time
- * you just need to add MIN_KEYCODE, see xf86-input-keyboard/src/atKeynames
- * and xf86-input-keyboard/src/kbd.c:PostKbdEvent:
- *   xf86PostKeyboardEvent(device, scanCode + MIN_KEYCODE, down); */
+   But xf86PostKeyboardEvent expects scancodes. Apparently most of the time
+   you just need to add MIN_KEYCODE, see xf86-input-keyboard/src/atKeynames
+   and xf86-input-keyboard/src/kbd.c:PostKbdEvent:
+     xf86PostKeyboardEvent(device, scanCode + MIN_KEYCODE, down); */
 #define MIN_KEYCODE     8
 
 /* *INDENT-OFF* - Prevent indent from shifting style on us */

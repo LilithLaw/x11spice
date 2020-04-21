@@ -118,7 +118,7 @@ static void handle_damage_notify(display_t *display, xcb_damage_notify_event_t *
                              dev->area.x, dev->area.y, dev->area.width, dev->area.height);
 
     /* The MORE flag is 0x80 on the level field; the proto documentation
-       is wrong on this point.  Check the xorg server code to see */
+       is wrong on this point.  Check the xorg server code to see. */
     if (dev->level & 0x80)
         return;
 
@@ -129,7 +129,7 @@ static void handle_damage_notify(display_t *display, xcb_damage_notify_event_t *
 
     /* Compositing window managers such as mutter have a bad habit of sending
        whole screen updates, which ends up being harmful to user experience.
-       In that case, we want to stop trusting those damage reports */
+       In that case, we want to stop trusting those damage reports. */
     if (dev->area.width == display->width && dev->area.height == display->height) {
         display->fullscreen_damage_count++;
     } else {
@@ -260,9 +260,8 @@ static int shm_cache_get(display_t *d, size_t size, shm_segment_t *segment)
     g_mutex_lock(&d->shm_cache_mutex);
 
     /* Check the cache for a segment of size 'size' or bigger.
-     * Use an exact-size segment if found.
-     * If not, use the smallest entry that is big enough.
-     */
+       Use an exact-size segment if found.
+       If not, use the smallest entry that is big enough.  */
     for (i = 0; i < G_N_ELEMENTS(d->shm_cache); i++) {
         shm_segment_t *entry = &d->shm_cache[i];
 
@@ -318,9 +317,8 @@ static int shm_cache_add(display_t *d, shm_segment_t *segment)
     g_mutex_lock(&d->shm_cache_mutex);
 
     /* 'segment' is now unused, try to add it to the cache.
-     * Use an empty slot in the cache if available.
-     * If not, evict the smallest entry (which also must be smaller than 'segment') from the cache.
-     */
+       Use an empty slot in the cache if available.
+       If not, evict the smallest entry (which also must be smaller than 'segment') from the cache.  */
     for (i = 0; i < G_N_ELEMENTS(d->shm_cache); i++) {
         shm_segment_t *entry = &d->shm_cache[i];
 
@@ -618,8 +616,7 @@ void destroy_shm_image(display_t *d, shm_image_t *shmi)
 int display_create_screen_images(display_t *d)
 {
     /* 'primary' and 'fullscreen' don't need to be SHM, normal buffers would work
-     * fine. Using SHM for all buffers is simpler though, and has no real downsides.
-     */
+       fine. Using SHM for all buffers is simpler though, and has no real downsides.  */
     d->primary = create_shm_image(d, 0, 0);
     if (!d->primary) {
         return X11SPICE_ERR_NOSHM;

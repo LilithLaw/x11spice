@@ -66,8 +66,7 @@ typedef struct {
     shm_image_t *scanline;
 
     /* The SHM cache holds up to 10 segments, this provides a good cache
-     * hit rate while keeping memory usage reasonable.
-     */
+       hit rate while keeping memory usage reasonable.  */
     shm_segment_t shm_cache[10];
     GMutex shm_cache_mutex;
 
