@@ -616,6 +616,12 @@ int display_scan_whole_screen(display_t *d, int num_vertical_tiles, int num_hori
 
     ret = read_shm_image(d, fullscreen_new, 0, 0);
     if (ret == 0) {
+        if (d->fullscreen->h != fullscreen_new->h || d->fullscreen->w != fullscreen_new->w) {
+            /* If we're in the middle of a screen resize, just bail */
+            destroy_shm_image(d, fullscreen_new);
+            return 0;
+        }
+
         for (v_tile = 0; v_tile < num_vertical_tiles; v_tile++) {
             /* Note that integer math and multiplying first is important;
                especially in the case where our screen height is not a
