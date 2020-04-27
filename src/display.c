@@ -622,10 +622,7 @@ int display_scan_whole_screen(display_t *d, int num_vertical_tiles, int num_hori
                multiple of 32 */
             int ystart = (v_tile * d->fullscreen->h) / num_vertical_tiles;
             int yend = ((v_tile + 1) * d->fullscreen->h) / num_vertical_tiles;
-            for (y = ystart; y < yend; y++) {
-                if (y >= d->fullscreen->h)
-                    continue;
-
+            for (y = ystart; y < yend && y < d->fullscreen->h; y++) {
                 uint32_t *old = ((uint32_t *) d->fullscreen->segment.shmaddr) +
                     (y * d->fullscreen->w);
                 uint32_t *new = ((uint32_t *) fullscreen_new->segment.shmaddr) +
