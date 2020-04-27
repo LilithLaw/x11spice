@@ -361,8 +361,6 @@ static void scan_full_screen(scanner_t *scanner)
     int tiles_changed_in_row[num_vertical_tiles];
     int tiles_changed[num_vertical_tiles][NUM_HORIZONTAL_TILES];
 
-    memset(tiles_changed_in_row, 0, sizeof(tiles_changed_in_row));
-
     rc = display_scan_whole_screen(&scanner->session->display,
                                    num_vertical_tiles, NUM_HORIZONTAL_TILES,
                                    tiles_changed, tiles_changed_in_row);

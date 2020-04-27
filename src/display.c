@@ -610,6 +610,8 @@ int display_scan_whole_screen(display_t *d, int num_vertical_tiles, int num_hori
     shm_image_t *fullscreen_new;
 
     memset(tiles, 0, sizeof(**tiles) * num_vertical_tiles * num_horizontal_tiles);
+    memset(tiles_changed_in_row, 0, sizeof(*tiles_changed_in_row) * num_vertical_tiles);
+
     fullscreen_new = create_shm_image(d, 0, 0);
     if (!fullscreen_new)
         return 0;
