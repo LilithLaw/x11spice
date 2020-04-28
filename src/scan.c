@@ -213,7 +213,7 @@ static void grow_changed_tiles(scanner_t *scanner G_GNUC_UNUSED,
             if (!tiles_changed[i][j]) {
                 int grow = 0;
 
-                /* You get good optimzations from having multiple rows,
+                /* You get good optimizations from having multiple rows,
                    so be more aggressive in growing the first and last tile;
                    just require a neighbor be set */
                 if (j == 0 && tiles_changed[i][1])
