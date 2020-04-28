@@ -552,7 +552,7 @@ int read_shm_image(display_t *d, shm_image_t *shmi, int x, int y)
     return 0;
 }
 
-int display_find_changed_tiles(display_t *d, int row, int *tiles, int tiles_across)
+int display_find_changed_tiles(display_t *d, int row, bool *tiles, int tiles_across)
 {
     int ret;
     int len;
@@ -572,7 +572,7 @@ int display_find_changed_tiles(display_t *d, int row, int *tiles, int tiles_acro
                 len = d->scanline->w - (i * len);
             if (memcmp(old, new, sizeof(*old) * len)) {
                 ret++;
-                tiles[i]++;
+                tiles[i] = true;
             }
         }
     }
@@ -608,7 +608,7 @@ void display_copy_image_into_fullscreen(display_t *d, shm_image_t *shmi, int x, 
 }
 
 int display_scan_whole_screen(display_t *d, int num_vertical_tiles, int num_horizontal_tiles,
-                              int tiles[][num_horizontal_tiles], int *tiles_changed_in_row)
+                              bool tiles[][num_horizontal_tiles], int *tiles_changed_in_row)
 {
     int ret;
     int len;
@@ -650,7 +650,7 @@ int display_scan_whole_screen(display_t *d, int num_vertical_tiles, int num_hori
                         len = d->fullscreen->w - (h_tile * len);
                     if (memcmp(old, new, sizeof(*old) * len)) {
                         ret++;
-                        tiles[v_tile][h_tile]++;
+                        tiles[v_tile][h_tile] = true;
                         tiles_changed_in_row[v_tile]++;
                     }
                 }

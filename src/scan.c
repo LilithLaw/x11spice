@@ -196,7 +196,7 @@ static void push_tiles_report(scanner_t *scanner, int start_row, int start_col, 
 
 static void grow_changed_tiles(scanner_t *scanner G_GNUC_UNUSED,
                                int *tiles_changed_in_row,
-                               int tiles_changed[][NUM_HORIZONTAL_TILES], int num_vertical_tiles)
+                               bool tiles_changed[][NUM_HORIZONTAL_TILES], int num_vertical_tiles)
 {
     int i;
     int j;
@@ -227,7 +227,7 @@ static void grow_changed_tiles(scanner_t *scanner G_GNUC_UNUSED,
                     grow++;
 
                 if (grow) {
-                    tiles_changed[i][j]++;
+                    tiles_changed[i][j] = true;
                     tiles_changed_in_row[i]++;
                 }
             }
@@ -265,14 +265,14 @@ static void push_changes_across_rows(scanner_t *scanner, int *tiles_changed_in_r
         push_tiles_report(scanner, start_row, 0, current_row, NUM_HORIZONTAL_TILES - 1);
 }
 
-static void push_changes_in_one_row(scanner_t *scanner, int row, int *tiles_changed)
+static void push_changes_in_one_row(scanner_t *scanner, int row, bool *tiles_changed)
 {
     int i = 0;
     int start_tile = -1;
     int current_tile = -1;
 
     for (i = 0; i < NUM_HORIZONTAL_TILES; i++) {
-        if (tiles_changed[i] == 0) {
+        if (!tiles_changed[i]) {
             if (current_tile != -1) {
                 push_tiles_report(scanner, row, start_tile, row, current_tile);
                 start_tile = current_tile = -1;
@@ -289,7 +289,7 @@ static void push_changes_in_one_row(scanner_t *scanner, int row, int *tiles_chan
 }
 
 static void push_changed_tiles(scanner_t *scanner, int *tiles_changed_in_row,
-                               int tiles_changed[][NUM_HORIZONTAL_TILES], int num_vertical_tiles)
+                               bool tiles_changed[][NUM_HORIZONTAL_TILES], int num_vertical_tiles)
 {
     int i = 0;
 
@@ -327,7 +327,7 @@ static void scanner_periodic(scanner_t *scanner)
         num_vertical_tiles++;
 
     int tiles_changed_in_row[num_vertical_tiles];
-    int tiles_changed[num_vertical_tiles][NUM_HORIZONTAL_TILES];
+    bool tiles_changed[num_vertical_tiles][NUM_HORIZONTAL_TILES];
 
     offset = scanlines[scanner->current_scanline++];
     scanner->current_scanline %= NUM_SCANLINES;
@@ -362,7 +362,7 @@ static void scan_full_screen(scanner_t *scanner)
         num_vertical_tiles++;
 
     int tiles_changed_in_row[num_vertical_tiles];
-    int tiles_changed[num_vertical_tiles][NUM_HORIZONTAL_TILES];
+    bool tiles_changed[num_vertical_tiles][NUM_HORIZONTAL_TILES];
 
     rc = display_scan_whole_screen(&scanner->session->display,
                                    num_vertical_tiles, NUM_HORIZONTAL_TILES,
