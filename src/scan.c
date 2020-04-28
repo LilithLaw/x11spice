@@ -322,9 +322,8 @@ static void scanner_periodic(scanner_t *scanner)
     int rc;
 
     g_mutex_lock(scanner->session->lock);
-    num_vertical_tiles = scanner->session->display.fullscreen->h / NUM_SCANLINES;
-    if (scanner->session->display.fullscreen->h % NUM_SCANLINES)
-        num_vertical_tiles++;
+    num_vertical_tiles =
+        (scanner->session->display.fullscreen->h + NUM_SCANLINES - 1) / NUM_SCANLINES;
 
     int tiles_changed_in_row[num_vertical_tiles];
     bool tiles_changed[num_vertical_tiles][NUM_HORIZONTAL_TILES];
@@ -357,9 +356,8 @@ static void scan_full_screen(scanner_t *scanner)
     int rc;
 
     g_mutex_lock(scanner->session->lock);
-    num_vertical_tiles = scanner->session->display.fullscreen->h / NUM_SCANLINES;
-    if (scanner->session->display.fullscreen->h % NUM_SCANLINES)
-        num_vertical_tiles++;
+    num_vertical_tiles =
+        (scanner->session->display.fullscreen->h + NUM_SCANLINES - 1) / NUM_SCANLINES;
 
     int tiles_changed_in_row[num_vertical_tiles];
     bool tiles_changed[num_vertical_tiles][NUM_HORIZONTAL_TILES];
