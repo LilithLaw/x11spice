@@ -210,26 +210,28 @@ static void grow_changed_tiles(scanner_t *scanner G_GNUC_UNUSED,
         }
 
         for (j = 0; j < NUM_HORIZONTAL_TILES; j++) {
-            if (!tiles_changed[i][j]) {
-                int grow = 0;
+            int grow = 0;
 
-                /* You get good optimizations from having multiple rows,
-                   so be more aggressive in growing the first and last tile;
-                   just require a neighbor be set */
-                if (j == 0 && tiles_changed[i][1])
-                    grow++;
-                else if (j == NUM_HORIZONTAL_TILES - 1 && tiles_changed[i][j - 1])
-                    grow++;
+            if (tiles_changed[i][j]) {
+                continue;
+            }
 
-                /* Otherwise, require that growing 'fills' a gap */
-                else if (j > 0 && j < (NUM_HORIZONTAL_TILES - 1) &&
-                         tiles_changed[i][j - 1] && tiles_changed[i][j + 1])
-                    grow++;
+            /* You get good optimizations from having multiple rows,
+               so be more aggressive in growing the first and last tile;
+               just require a neighbor be set */
+            if (j == 0 && tiles_changed[i][1])
+                grow++;
+            else if (j == NUM_HORIZONTAL_TILES - 1 && tiles_changed[i][j - 1])
+                grow++;
 
-                if (grow) {
-                    tiles_changed[i][j] = true;
-                    tiles_changed_in_row[i]++;
-                }
+            /* Otherwise, require that growing 'fills' a gap */
+            else if (j > 0 && j < (NUM_HORIZONTAL_TILES - 1) &&
+                     tiles_changed[i][j - 1] && tiles_changed[i][j + 1])
+                grow++;
+
+            if (grow) {
+                tiles_changed[i][j] = true;
+                tiles_changed_in_row[i]++;
             }
         }
 
