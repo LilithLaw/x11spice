@@ -408,7 +408,7 @@ int display_open(display_t *d, session_t *session)
         return X11SPICE_ERR_NODAMAGE;
     }
 
-    if (session->options.full_screen_fps == 0) {
+    if (session->options.full_screen_fps <= 0) {
         dcookie =
             xcb_damage_query_version(d->c, XCB_DAMAGE_MAJOR_VERSION, XCB_DAMAGE_MINOR_VERSION);
         damage_version = xcb_damage_query_version_reply(d->c, dcookie, &error);
@@ -747,7 +747,7 @@ void display_close(display_t *d)
 {
     shm_cache_destroy(d);
     g_mutex_clear(&d->shm_cache_mutex);
-    if (d->session->options.full_screen_fps == 0) {
+    if (d->session->options.full_screen_fps <= 0) {
         xcb_damage_destroy(d->c, d->damage);
     }
     display_destroy_screen_images(d);
