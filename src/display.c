@@ -665,9 +665,18 @@ int display_scan_whole_screen(display_t *d, int num_vertical_tiles, int num_hori
         }
     }
 
-    /* We've just read the full screen; may as well use it */
-    destroy_shm_image(d, d->fullscreen);
-    d->fullscreen = fullscreen_new;
+    /* Note:  it is tempting to replace d->fullscreen now, but that causes
+       display glitches.  The issue is the optimization in scanner_push.
+       That will cause us to discard a SCANLINE_SCAN_REPORT if there
+       is a whole screen SCANLINE_DAMAGE_REPORT right behind it.  That logic is
+       reasonable, if the scan will continue to find a problem. But replacing
+       d->fullscreen now will cause that damage report to fail to find any
+       problems, and we'll have discarded a valid scan report.
+       You can modify scan.c to drop that optimization for DAMAGE reports,
+       but a naive perf analysis suggests that actually costs you.
+       This is partly because call to display_copy_image_into_fullscreen
+       in handle_scan_report() still occurs, so you haven't saved that time. */
+    destroy_shm_image(d, fullscreen_new);
 
     return ret;
 }
