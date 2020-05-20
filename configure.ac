@@ -1,4 +1,4 @@
-AC_INIT([x11spice], 1.1)
+AC_INIT([x11spice], 1.2)
 AM_INIT_AUTOMAKE([subdir-objects])
 
 PKG_CHECK_MODULES(XCB, xcb)

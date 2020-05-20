@@ -1,6 +1,10 @@
+* Wed May 20 2020 Jeremy White <jwhite@codeweavers.com> 1.2.0-1
+- Include the new spice-video-dummy driver, providing graphics capability
+- Refine behavior to enable use with compositing window managers like mutter
+
 * Wed Nov 02 2016 Jeremy White <jwhite@codeweavers.com> 1.1.0-1
 - Fix issues uncovered by Coverity
-- Invert the logic of view only; make it the default 
+- Invert the logic of view only; make it the default
 - Add optional audit calls
 - Add callback capabilities
 - Provide a connect / disconnect callback facility
