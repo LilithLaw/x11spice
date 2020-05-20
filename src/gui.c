@@ -129,7 +129,7 @@ void gui_report_error(gui_t *gui, const char *message)
 
     dialog = gtk_message_dialog_new(GTK_WINDOW(gui->window),
                                     GTK_DIALOG_DESTROY_WITH_PARENT,
-                                    GTK_MESSAGE_ERROR, GTK_BUTTONS_CLOSE, message);
+                                    GTK_MESSAGE_ERROR, GTK_BUTTONS_CLOSE, "%s", message);
 
     gtk_dialog_run(GTK_DIALOG(dialog));
     gtk_widget_destroy(dialog);
