@@ -91,8 +91,10 @@ To use this driver, simply add:
 
 to the configure line.  This will build the Xorg driver.  A simplistic
 example is included showing the general concepts of using this driver.
-Refer to the spice-video-dummy/spicedummy.sh bash script for more
-information.
+You can try this by running:
+  spice-video-dummy/spicedummy.sh
+
+That bash script is recommended reading.
 
 
 Using code coverage (gcov)
