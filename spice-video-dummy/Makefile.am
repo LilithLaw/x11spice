@@ -20,4 +20,8 @@
 
 SUBDIRS = src
 
-EXTRA_DIST = README.md
+dist_bin_SCRIPTS = spicedummy.sh
+nobase_sysconf_DATA = X11/spicedummy.conf
+EXTRA_DIST = \
+             README.md \
+             X11/spicedummy.conf

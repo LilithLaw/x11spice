@@ -27,9 +27,11 @@ make %{?_smp_mflags}
 %files
 %doc COPYING ChangeLog README
 %{_bindir}/x11spice
+%{_bindir}/spicedummy.sh
 %{_bindir}/x11spice_connected_gnome
 %{_bindir}/x11spice_disconnected_gnome
 %{_sysconfdir}/xdg/x11spice/x11spice.conf
+%{_sysconfdir}/X11/spicedummy.conf
 %{_datadir}/applications/x11spice.desktop
 %{_datadir}/icons/hicolor/scalable/apps/x11spice.svg
 %{_mandir}/man1/%{name}*.1*
