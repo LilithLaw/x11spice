@@ -43,7 +43,8 @@ data_icon_DATA = data/x11spice.svg
 EXTRA_DIST = \
     xdg/x11spice/x11spice.conf \
     data/x11spice.desktop \
-    data/x11spice.svg
+    data/x11spice.svg \
+    data/x11spice.spec
 
 if HAVE_GTEST
     SUBDIRS = tests
