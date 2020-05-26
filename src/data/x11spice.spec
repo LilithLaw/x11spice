@@ -23,6 +23,9 @@ Utility to share x11 desktops via Spice.
 
 
 %build
+# The Xorg modules cannot use -Znow, so we harden just x11spice
+export X11SPICE_ONLY_CFLAGS="%{_hardened_cflags}"
+export X11SPICE_ONLY_LDFLAGS="%{_hardened_ldflags}"
 %undefine _hardened_build
 %configure --enable-dummy
 make %{?_smp_mflags}
