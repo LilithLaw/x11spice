@@ -17,6 +17,12 @@ PKG_CHECK_MODULES(PIXMAN, pixman-1)
 
 AM_CONDITIONAL([HAVE_GTEST], [pkg-config --atleast-version=2.38 glib-2.0])
 
+# Fedora likes to harden builds.  We cannot use the hardening flags on the
+#  spice-video-dummy, as -znow causes Xorg conventions to fail.
+#  We use these flags to pass the hardening options only to x11spice.
+AC_SUBST([X11SPICE_ONLY_CFLAGS])
+AC_SUBST([X11SPICE_ONLY_LDFLAGS])
+
 AC_ARG_ENABLE([dummy], AS_HELP_STRING([--enable-dummy], [Builds the spice-video-dummy driver]), [dummy=true])
 AM_CONDITIONAL([DUMMY], test x$dummy = xtrue)
 
