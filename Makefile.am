@@ -4,4 +4,4 @@ if DUMMY
 endif
 
 rpm: dist
-	rpmbuild -ba --define "_sourcedir $$PWD" src/data/x11spice.spec
+	rpmbuild -ta $(DIST_ARCHIVES)
