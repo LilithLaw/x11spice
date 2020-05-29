@@ -79,9 +79,9 @@ else
     xorg=`which Xorg`
 fi
 xmodules=`"$xorg" -showDefaultModulePath 2>&1`
-x11spice=`which x11spice`
+x11spice="$dummydir/../src/x11spice"
 if [ ! -x "$x11spice" ] ; then
-    x11spice="$dummydir/../src/x11spice"
+    x11spice=`which x11spice`
 fi
 
 if [ ! -x "$x11spice" ] ; then
