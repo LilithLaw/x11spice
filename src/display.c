@@ -27,6 +27,7 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <stdarg.h>
 
 #include <glib.h>
 
@@ -81,10 +82,10 @@ static void handle_cursor_notify(display_t *display,
     int imglen;
     uint32_t *imgdata;
 
-#if defined(DEBUG_DISPLAY_EVENTS)
-    g_debug("Cursor Notify [seq %d|subtype %d|serial %u]",
-            cev->sequence, cev->subtype, cev->cursor_serial);
-#endif
+    if (display->session->options.debug_draws >= DEBUG_DRAWS_BASIC) {
+        display_debug("Cursor Notify [seq %d|subtype %d|serial %u]\n",
+                      cev->sequence, cev->subtype, cev->cursor_serial);
+    }
 
     icookie = xcb_xfixes_get_cursor_image(display->c);
 
@@ -136,13 +137,13 @@ static void handle_damage_notify(display_t *display, xcb_damage_notify_event_t *
         display->fullscreen_damage_count = 0;
     }
 
-#if defined(DEBUG_DISPLAY_EVENTS)
-    g_debug("Damage Notify [seq %d|level %d|more %d|area (%dx%d)@%dx%d|geo (%dx%d)@%dx%d%s",
-            dev->sequence, dev->level, dev->level & 0x80,
-            dev->area.width, dev->area.height, dev->area.x, dev->area.y,
-            dev->geometry.width, dev->geometry.height, dev->geometry.x, dev->geometry.y,
-            display_trust_damage(display) ? "" : " SKIPPED");
-#endif
+    if (display->session->options.debug_draws >= DEBUG_DRAWS_BASIC) {
+        display_debug
+            ("Damage Notify [seq %d|level %d|more %d|area (%dx%d)@%dx%d|geo (%dx%d)@%dx%d%s\n",
+             dev->sequence, dev->level, dev->level & 0x80, dev->area.width, dev->area.height,
+             dev->area.x, dev->area.y, dev->geometry.width, dev->geometry.height, dev->geometry.x,
+             dev->geometry.y, display_trust_damage(display) ? "" : " SKIPPED");
+    }
 
     if (display_trust_damage(display)) {
         for (i = 0; i < n; i++)
@@ -157,12 +158,12 @@ static void handle_damage_notify(display_t *display, xcb_damage_notify_event_t *
 
 static void handle_configure_notify(display_t *display, xcb_configure_notify_event_t *cev)
 {
-#if defined(DEBUG_DISPLAY_EVENTS)
-    g_debug
-        ("%s:[event %u|window %u|above_sibling %u|x %d|y %d|width %d|height %d|border_width %d|override_redirect %d]",
-         __func__, cev->event, cev->window, cev->above_sibling, cev->x, cev->y, cev->width,
-         cev->height, cev->border_width, cev->override_redirect);
-#endif
+    if (display->session->options.debug_draws >= DEBUG_DRAWS_BASIC) {
+        display_debug
+            ("%s:[event %u|window %u|above_sibling %u|x %d|y %d|width %d|height %d|border_width %d|override_redirect %d]\n",
+             __func__, cev->event, cev->window, cev->above_sibling, cev->x, cev->y, cev->width,
+             cev->height, cev->border_width, cev->override_redirect);
+    }
 
     if (cev->window != display->root) {
         g_debug("not main window; skipping.");
@@ -576,13 +577,13 @@ int display_find_changed_tiles(display_t *d, int row, bool *tiles, int tiles_acr
             }
         }
     }
-#if defined(DEBUG_SCANLINES)
-    fprintf(stderr, "%d: ", row);
-    for (i = 0; i < tiles_across; i++)
-        fprintf(stderr, "%c", tiles[i] ? 'X' : '-');
-    fprintf(stderr, "\n");
-    fflush(stderr);
-#endif
+    if (d->session->options.debug_draws >= DEBUG_DRAWS_DETAIL) {
+        fprintf(stderr, "%d: ", row);
+        for (i = 0; i < tiles_across; i++)
+            fprintf(stderr, "%c", tiles[i] ? 'X' : '-');
+        fprintf(stderr, "\n");
+        fflush(stderr);
+    }
 
     return ret;
 }
@@ -655,13 +656,13 @@ int display_scan_whole_screen(display_t *d, int num_vertical_tiles, int num_hori
                     }
                 }
             }
-#if defined(DEBUG_SCANLINES)
-            fprintf(stderr, "%d: ", v_tile);
-            for (h_tile = 0; h_tile < num_horizontal_tiles; h_tile++)
-                fprintf(stderr, "%c", tiles[v_tile][h_tile] ? 'X' : '-');
-            fprintf(stderr, "\n");
-            fflush(stderr);
-#endif
+            if (d->session->options.debug_draws >= DEBUG_DRAWS_DETAIL) {
+                fprintf(stderr, "%d: ", v_tile);
+                for (h_tile = 0; h_tile < num_horizontal_tiles; h_tile++)
+                    fprintf(stderr, "%c", tiles[v_tile][h_tile] ? 'X' : '-');
+                fprintf(stderr, "\n");
+                fflush(stderr);
+            }
         }
     }
 
@@ -770,4 +771,17 @@ int display_trust_damage(display_t *d)
     if (d->session->options.trust_damage == NEVER_TRUST)
         return 0;
     return d->fullscreen_damage_count <= 2;
+}
+
+void display_debug(const char *fmt, ...)
+{
+    va_list ap;
+    struct timeval tv;
+
+    gettimeofday(&tv, NULL);
+    va_start(ap, fmt);
+    fprintf(stderr, "draw:%04ld.%06ld:", tv.tv_sec, tv.tv_usec);
+    vfprintf(stderr, fmt, ap);
+    fflush(stderr);
+    va_end(ap);
 }

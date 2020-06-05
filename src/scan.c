@@ -332,6 +332,10 @@ static void scanner_periodic(scanner_t *scanner)
     offset = scanlines[scanner->current_scanline++];
     scanner->current_scanline %= NUM_SCANLINES;
 
+    if (scanner->session->options.debug_draws >= DEBUG_DRAWS_DETAIL) {
+        display_debug("scanner_periodic start; scanline %d\n", scanner->current_scanline);
+    }
+
     for (y = offset, i = 0; i < num_vertical_tiles; i++, y += NUM_SCANLINES) {
         if (y >= scanner->session->display.fullscreen->h)
             rc = 0;
@@ -347,6 +351,10 @@ static void scanner_periodic(scanner_t *scanner)
     }
     grow_changed_tiles(scanner, tiles_changed_in_row, tiles_changed, num_vertical_tiles);
     push_changed_tiles(scanner, tiles_changed_in_row, tiles_changed, num_vertical_tiles);
+
+    if (scanner->session->options.debug_draws >= DEBUG_DRAWS_DETAIL) {
+        display_debug("scanner_periodic done; scanline %d\n", scanner->current_scanline);
+    }
 
     g_mutex_unlock(scanner->session->lock);
 }
@@ -475,10 +483,9 @@ int scanner_push(scanner_t *scanner, scan_type_t type, int x, int y, int w, int 
 {
     scan_report_t *r;
 
-#if defined(DEBUG_SCANLINES)
-    fprintf(stderr, "scan: type %d, %dx%d @ %dx%d\n", type, w, h, x, y);
-    fflush(stderr);
-#endif
+    if (scanner->session->options.debug_draws >= DEBUG_DRAWS_DETAIL) {
+        display_debug("scan: type %d, %dx%d @ %dx%d\n", type, w, h, x, y);
+    }
 
     g_mutex_lock(scanner->lock);
 

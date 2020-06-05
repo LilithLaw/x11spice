@@ -398,6 +398,7 @@ static void options_from_config(options_t *options)
 
     options->full_screen_fps = int_option(userkey, systemkey, "spice", "full-screen-fps");
     string_option(&options->codecs, userkey, systemkey, "spice", "codecs");
+    options->debug_draws = int_option(userkey, systemkey, "spice", "debug-draws");
 
 #if defined(HAVE_LIBAUDIT_H)
     /* Pick an arbitrary default in the user range.  CodeWeavers was founed in 1996, so 1196 it is... */

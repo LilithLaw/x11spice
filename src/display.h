@@ -75,6 +75,13 @@ typedef struct {
     struct session_struct *session;
 } display_t;
 
+/* Levels for debug-draws */
+enum {
+    DEBUG_DRAWS_NONE,
+    DEBUG_DRAWS_BASIC,
+    DEBUG_DRAWS_DETAIL,
+};
+
 
 /*----------------------------------------------------------------------------
 **  Prototypes
@@ -95,5 +102,10 @@ int read_shm_image(display_t *d, shm_image_t *shmi, int x, int y);
 void destroy_shm_image(display_t *d, shm_image_t *shmi);
 
 int display_trust_damage(display_t *d);
+#if defined(__GNUC__)
+void display_debug(const char *fmt, ...) __attribute__((format(printf, 1, 2)));
+#else
+void display_debug(const char *fmt, ...);
+#endif
 
 #endif

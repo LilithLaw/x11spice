@@ -67,6 +67,7 @@ typedef struct {
     int audit_message_type;
     damage_trust_t trust_damage;
     int full_screen_fps;
+    int debug_draws;
 
     /* file names of config files */
     char *user_config_file;
