@@ -48,11 +48,21 @@ typedef struct {
 } shm_image_t;
 
 typedef struct {
+    int width;
+    int height;
+    int x;
+    int y;
+} monitor_info_t;
+
+typedef struct {
     xcb_connection_t *c;
     xcb_window_t root;
     unsigned int width;
     unsigned int height;
     unsigned int depth;
+
+    int monitor_count;
+    monitor_info_t *monitors;
 
     const xcb_query_extension_reply_t *damage_ext;
     xcb_damage_damage_t damage;

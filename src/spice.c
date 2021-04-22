@@ -428,28 +428,36 @@ void tablet_buttons(SpiceTabletInstance *tablet, uint32_t buttons_state)
     session_handle_mouse_buttons(s->session, buttons_state);
 }
 
-static int send_monitors_config(spice_t *s, int w, int h)
+static int send_monitors_config(spice_t *s, display_t *d)
 {
     spice_release_t *release;
+    int i;
 
-    QXLMonitorsConfig *monitors = calloc(1, sizeof(QXLMonitorsConfig) + sizeof(QXLHead));
+    QXLMonitorsConfig *monitors =
+        calloc(1, sizeof(QXLMonitorsConfig) + (d->monitor_count * sizeof(QXLHead)));
     if (!monitors)
         return X11SPICE_ERR_MALLOC;
     release = spice_create_release(s, RELEASE_MEMORY, monitors);
+    s->monitor_count = d->monitor_count;
 
-    monitors->count = 1;
-    monitors->max_allowed = 1;
-    monitors->heads[0].id = 0;
-    monitors->heads[0].surface_id = 0;
-    monitors->heads[0].width = w;
-    monitors->heads[0].height = h;
+    monitors->count = d->monitor_count;
+    monitors->max_allowed = d->monitor_count;
+    for (i = 0; i < d->monitor_count; i++) {
+        monitors->heads[i].id = i;
+        monitors->heads[i].surface_id = 0;
+        monitors->heads[i].width = d->monitors[i].width;
+        monitors->heads[i].height = d->monitors[i].height;
+        monitors->heads[i].x = d->monitors[i].x;
+        monitors->heads[i].y = d->monitors[i].y;
+    }
 
     spice_qxl_monitors_config_async(&s->display_sin, (uintptr_t) monitors, 0, (uintptr_t) release);
 
     return 0;
 }
 
-int spice_create_primary(spice_t *s, int w, int h, int bytes_per_line, void *shmaddr)
+int spice_create_primary(spice_t *s, int w, int h, int bytes_per_line, void *shmaddr,
+                         display_t *display)
 {
     QXLDevSurfaceCreate surface = { };
 
@@ -474,7 +482,7 @@ int spice_create_primary(spice_t *s, int w, int h, int bytes_per_line, void *shm
 
     spice_qxl_create_primary_surface(&s->display_sin, 0, &surface);
 
-    return send_monitors_config(s, w, h);
+    return send_monitors_config(s, display);
 }
 
 void spice_destroy_primary(spice_t *s)
@@ -617,7 +625,7 @@ static int try_listen(spice_t *s, options_t *options)
     return 0;
 }
 
-int spice_start(spice_t *s, options_t *options, shm_image_t *primary)
+int spice_start(spice_t *s, options_t *options, shm_image_t *primary, display_t *display)
 {
     int rc;
 
@@ -663,7 +671,7 @@ int spice_start(spice_t *s, options_t *options, shm_image_t *primary)
     spice_server_vm_start(s->server);
 
     rc = spice_create_primary(s, primary->w, primary->h,
-                              primary->bytes_per_line, primary->segment.shmaddr);
+                              primary->bytes_per_line, primary->segment.shmaddr, display);
 
     return rc;
 }
