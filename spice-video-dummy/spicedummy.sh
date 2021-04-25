@@ -75,6 +75,8 @@ zerodir=`dirname $0`
 dummydir=`(cd "$zerodir"; pwd)`
 if [ -x /usr/libexec/Xorg ] ; then
     xorg=/usr/libexec/Xorg
+elif [ -x /usr/lib/xorg/Xorg ]; then
+    xorg=/usr/lib/xorg/Xorg
 else
     xorg=`which Xorg`
 fi
