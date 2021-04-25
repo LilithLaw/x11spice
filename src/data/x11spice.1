@@ -47,6 +47,13 @@ This will prevent the x11spice user interface from appearing at all.
 \fB\-\-minimize\fR
 If given, the x11spice user interface will start minimized.
 .TP
+\fB\-\-virtio-path=\fISOCKET-FILE\f
+Path to a virtual io unix domain socket.  Should match the
+-s option passed to spice-vdagent.
+.TP
+\fB\-\-uinput-path=\fIFIFO-FILE\f
+Path to a unix fifo.  Should match the -u option passed to spice-vdagentd.
+.TP
 \fB\-\-password\fR=\fIPASSWORD\fR
 If given, x11spice will directly use PASSWORD as an option.  \fBNote: this is not recommended.\fR
 This will expose the password in the process list, which is a security concern.

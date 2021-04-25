@@ -23,18 +23,20 @@ usage()
 {
     cat << EOF
 Usage:
-  spicedummy.sh [--display :n] [--query hostname] [x11spice-arguments]
+  spicedummy.sh [--display :n] [--query hostname] [--agent] [x11spice-arguments]
 If no x11spice arguments are provided, a random password will be
   generated and passed in along with --allow-control.
 If no display is given, :2 will be used.
 If --query is provided, Xorg will be started with a request to query the
   given host via XDMCP.  Otherwise, xinit will be invoked.
 Note that XDMCP usually requires some further configuration.
+If --agent is provided, the spice-vdagentd and spice-vdagent will be started.
 EOF
     exit 1
 }
 
 # Parse arguments
+use_agent=0
 export DISPLAY=:2
 while [ $# -gt 0 ] ; do
     case "$1" in
@@ -54,6 +56,10 @@ while [ $# -gt 0 ] ; do
             usage
         fi
         xdmcp="$1"
+        shift;
+        ;;
+    --agent)
+        use_agent=1
         shift;
         ;;
     --help)
@@ -90,6 +96,25 @@ if [ ! -x "$x11spice" ] ; then
     echo "Error: x11spice not found in the path."
     echo "Cowardly refusing to start"
     exit 1
+fi
+
+if [ $use_agent -gt 0 ] ; then
+    vdagent=`which spice-vdagent`
+    if [ -z "$vdagent" ] ; then
+        echo "Error: spice-vdagent not found in path."
+        exit 1
+    fi
+
+    vdagentd=`which spice-vdagentd`
+    if [ -z "$vdagentd" ] ; then
+        vdagentd=/usr/sbin/spice-vdagentd
+    fi
+    if [ ! -x "$vdagentd" ] ; then
+        echo Error: spice-vdagentd not found in path or /usr/sbin.
+        exit 1
+    fi
+    vdadir=`mktemp -d`
+    args="$args --virtio-path=$vdadir/virtio --uinput-path=$vdadir/uinput"
 fi
 
 # Make sure xinit is likely to work
@@ -154,6 +179,23 @@ spicepid=$!
 
 echo Xorg server started as pid $xpid
 echo Spice server started as pid $spicepid
+
+if [ $use_agent -gt 0 ] ; then
+    sleep 0.5
+    $vdagentd -d -d -x -X -o -f -u $vdadir/uinput -s $vdadir/virtio -S $vdadir/vda &
+    agentdpid=$!
+    $vdagent -x -d -d -s $vdadir/virtio -S $vdadir/vda &
+    agentpid=$!
+    if [ $? -ne 0 ] ; then
+        echo "Error: spice-vdagent did not start up.  Expect agent problems."
+        kill $agentdpid
+    else
+        echo "spice-vdagentd started as $agentdpid; spice-vdagent as $agentpid"
+    fi
+fi
+
+
+
 if [ -n "$password" ] ; then
     echo You should be able to connect with a spice client now to port 5900,
     echo  using a password of $password
@@ -166,3 +208,9 @@ if [ -n "$xdmcp" ] ; then
 fi
 
 kill $xpid
+
+if [ $use_agent -gt 0 ] ; then
+    kill $agentdpid $agentpid
+    sleep 0.1
+    rm -rf $vdadir
+fi
