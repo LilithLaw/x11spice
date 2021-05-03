@@ -441,9 +441,9 @@ DUMMYPreInit(ScrnInfoPtr pScrn, int flags)
     /* Initialize outputs and crtcs */
     dPtr->numHeads = 1;
     xf86GetOptValInteger(dPtr->Options, OPTION_NUM_HEADS, &dPtr->numHeads);
-    if (dPtr->numHeads < 0 || dPtr->numHeads > 32) {
+    if (dPtr->numHeads < 1 || dPtr->numHeads > 32) {
         xf86DrvMsg(pScrn->scrnIndex, X_ERROR, "numHeads %d invalid, must be 1-32.\n", dPtr->numHeads);
-        dPtr->numHeads = 1;
+        return FALSE;
     }
     crtc_config_init(pScrn);
     output_pre_init(pScrn, dPtr->numHeads);
