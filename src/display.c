@@ -176,6 +176,10 @@ static void get_monitors(display_t *display)
     display->monitor_count = xcb_randr_get_monitors_monitors_length(reply);
     free(display->monitors);
     display->monitors = calloc(display->monitor_count, sizeof(*(display->monitors)));
+    if (!display->monitors) {
+        fprintf(stderr, "Error: could not allocate %d monitors\n", display->monitor_count);
+        return;
+    }
     iter = xcb_randr_get_monitors_monitors_iterator(reply);
     for (i = 0; i < display->monitor_count; i++) {
         display->monitors[i].x = iter.data->x;
