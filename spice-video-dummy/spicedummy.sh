@@ -105,7 +105,7 @@ if [ $use_agent -gt 0 ] ; then
         exit 1
     fi
 
-    vdagentd=`which spice-vdagentd`
+    vdagentd=`which spice-vdagentd 2>/dev/null`
     if [ -z "$vdagentd" ] ; then
         vdagentd=/usr/sbin/spice-vdagentd
     fi
