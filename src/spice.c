@@ -582,9 +582,10 @@ static int try_listen(spice_t *s, options_t *options)
     char *addr = NULL;
     int start;
     int rc;
+    int flags;
 
 
-    rc = listen_parse(options->listen, &addr, &start, &port);
+    rc = listen_parse(options->listen, &addr, &start, &port, &flags);
     if (rc)
         return rc;
 
@@ -600,7 +601,7 @@ static int try_listen(spice_t *s, options_t *options)
     }
 
     if (addr) {
-        spice_server_set_addr(s->server, addr, 0);
+        spice_server_set_addr(s->server, addr, flags);
         free(addr);
     }
 

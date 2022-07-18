@@ -39,12 +39,15 @@
 #include <arpa/inet.h>
 #include <errno.h>
 
+#include <spice.h>
+
 #include "listen.h"
 #include "x11spice.h"
 
 #define SPICE_URI_PREFIX    "spice://"
+#define SPICE_UNIX_URI_PREFIX    "spice+unix://"
 
-int listen_parse(const char *listen_spec, char **addr, int *port_start, int *port_end)
+int listen_parse(const char *listen_spec, char **addr, int *port_start, int *port_end, int *flags)
 {
     int leading = 0;
     int trailing = 0;
@@ -54,6 +57,15 @@ int listen_parse(const char *listen_spec, char **addr, int *port_start, int *por
 
     *port_start = *port_end = -1;
     *addr = NULL;
+    *flags = 0;
+
+    if (strncmp(listen_spec, SPICE_UNIX_URI_PREFIX, strlen(SPICE_UNIX_URI_PREFIX)) == 0) {
+        listen_spec += strlen(SPICE_UNIX_URI_PREFIX);
+
+        *flags = SPICE_ADDR_FLAG_UNIX_ONLY;
+        *addr = strdup(listen_spec);
+        return 0;
+    }
 
     /* Allow form of spice:// */
     if (strncmp(listen_spec, SPICE_URI_PREFIX, strlen(SPICE_URI_PREFIX)) == 0)

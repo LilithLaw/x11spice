@@ -25,7 +25,7 @@
 /*----------------------------------------------------------------------------
 **  Prototypes
 **--------------------------------------------------------------------------*/
-int listen_parse(const char *listen_spec, char **addr, int *port_start, int *port_end);
+int listen_parse(const char *listen_spec, char **addr, int *port_start, int *port_end, int *flags);
 int listen_find_open_port(const char *addr, int start, int end, int *port);
 
 #endif
