@@ -632,6 +632,8 @@ DUMMYScreenInit(SCREEN_INIT_ARGS_DECL)
 
     if (!xf86CrtcScreenInit(pScreen))
         return FALSE;
+    if (!xf86SetDesiredModes(pScrn))
+        return FALSE;
 
     xf86DPMSInit(pScreen, xf86DPMSSet, 0);
 
