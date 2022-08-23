@@ -86,7 +86,11 @@ static int get_a_line(char *buf, int len, x11spice_server_t *server)
     for (p = buf; p < buf + len; p++)
         if (*p == '\n') {
             if (p - buf > 4 && memcmp(buf, "URI=", 4) == 0) {
+#if GLIB_CHECK_VERSION(2, 68, 0)
+                server->uri = g_memdup2(buf + 4, p - buf - 4 + 1);
+#else
                 server->uri = g_memdup(buf + 4, p - buf - 4 + 1);
+#endif
                 server->uri[p - buf - 4] = '\0';
                 return len;
             }

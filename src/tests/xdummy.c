@@ -304,7 +304,11 @@ void start_server(xdummy_t *server, gconstpointer user_data)
         if (*p != '\n')
             continue;
 
+#if GLIB_CHECK_VERSION(2, 68, 0)
+        server->display = g_memdup2(buf, p - buf + 1);
+#else
         server->display = g_memdup(buf, p - buf + 1);
+#endif
         server->display[p - buf] = '\0';
         break;
     }
