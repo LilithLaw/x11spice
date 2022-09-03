@@ -592,10 +592,11 @@ static int try_listen(spice_t *s, options_t *options)
         fd = listen_find_open_port(addr, start, port, &port);
         fflush(stdout);
 
-        if (fd >= 0)
-            close(fd);
-        else
+        if (fd < 0) {
+            free(addr);
             return X11SPICE_ERR_AUTO_FAILED;
+        }
+        close(fd);
     }
 
     if (addr) {
