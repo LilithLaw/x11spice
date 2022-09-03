@@ -56,9 +56,8 @@ int listen_parse(const char *listen_spec, char **addr, int *port_start, int *por
     *addr = NULL;
 
     /* Allow form of spice:// */
-    if (strlen(listen_spec) > strlen(SPICE_URI_PREFIX))
-        if (memcmp(listen_spec, SPICE_URI_PREFIX, strlen(SPICE_URI_PREFIX)) == 0)
-            listen_spec += strlen(SPICE_URI_PREFIX);
+    if (strncmp(listen_spec, SPICE_URI_PREFIX, strlen(SPICE_URI_PREFIX)) == 0)
+        listen_spec += strlen(SPICE_URI_PREFIX);
 
     p = listen_spec + strlen(listen_spec) - 1;
     /* Look for a form of NNNN-NNNN at the end of the line */
