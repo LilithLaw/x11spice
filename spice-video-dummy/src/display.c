@@ -169,21 +169,28 @@ crtc_config_init(ScrnInfoPtr pScrn)
 }
 
 void
-crtc_create(ScrnInfoPtr pScrn)
+crtc_create_multiple(ScrnInfoPtr pScrn, unsigned int num_crtcs)
 {
     struct dummy_crtc_state *state;
     xf86CrtcRec *crtc;
+    unsigned int i;
 
-    crtc = xf86CrtcCreate(pScrn, &crtc_funcs);
+    for (i = 0; i < num_crtcs; i++) {
+        crtc = xf86CrtcCreate(pScrn, &crtc_funcs);
+        if (!crtc) {
+            xf86DrvMsg(pScrn->scrnIndex, X_ERROR, "Unable to create crtc %d\n", i);
+            break;
+        }
 
-    state = malloc(sizeof(*state));
-    state->ust_base = 0;
-    state->msc_base = 0;
-    state->interval = 0;
-    xorg_list_init(&state->vblank_queue);
-    xorg_list_init(&state->vblank_free);
-    state->vblank_timer = NULL;
-    crtc->driver_private = state;
+        state = malloc(sizeof(*state));
+        state->ust_base = 0;
+        state->msc_base = 0;
+        state->interval = 0;
+        xorg_list_init(&state->vblank_queue);
+        xorg_list_init(&state->vblank_free);
+        state->vblank_timer = NULL;
+        crtc->driver_private = state;
+    }
 
     /*
      * Set the CRTC parameters for all of the modes based on the type
@@ -413,13 +420,24 @@ xf86OutputFuncsRec output_funcs = {
 };
 
 void
-output_pre_init(ScrnInfoPtr pScrn)
+output_pre_init(ScrnInfoPtr pScrn, unsigned int num_outputs)
 {
     DisplayModePtr modes;
-    xf86OutputPtr output = xf86OutputCreate(pScrn, &output_funcs, "SPICE-0");
-    output->possible_crtcs = (1 << 0);
-    modes = xf86GetDefaultModes();
-    output_check_modes(pScrn, modes);
-    output_guess_ranges_from_modes(output->scrn->monitor, modes);
-    output->driver_private = modes;
+    unsigned int i;
+    char name[32];
+    xf86OutputPtr output;
+
+    for (i = 0; i < num_outputs; i++) {
+        snprintf(name, sizeof(name), "SPICE-%d", i);
+        output = xf86OutputCreate(pScrn, &output_funcs, name);
+        if (!output) {
+            xf86DrvMsg(pScrn->scrnIndex, X_ERROR, "Unable to create output %s\n", name);
+            break;
+        }
+        modes = xf86GetDefaultModes();
+        output->possible_crtcs = (1u << i);
+        output_check_modes(pScrn, modes);
+        output_guess_ranges_from_modes(output->scrn->monitor, modes);
+        output->driver_private = modes;
+    }
 }

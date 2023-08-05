@@ -159,6 +159,8 @@ static void usage(char *argv0)
     printf("%s [--ssl[=<ssl-spec>]]\n", indent);
     printf("%s [--hide]\n", indent);
     printf("%s [--minimize]\n", indent);
+    printf("%s [--virtio-path=<path-to-socket-file>]\n", indent);
+    printf("%s [--uinput-path=<path-to-fifo-file>]\n", indent);
 }
 
 static int options_handle_ssl(options_t *options, const char *spec)
@@ -224,6 +226,7 @@ static int options_parse_arguments(int argc, char *argv[], options_t *options)
         OPTION_TIMEOUT, OPTION_AUTO, OPTION_HIDE,
         OPTION_PASSWORD, OPTION_PASSWORD_FILE, OPTION_CONFIG, OPTION_SSL,
         OPTION_GENERATE_PASSWORD, OPTION_DISPLAY, OPTION_MINIMIZE,
+        OPTION_VIRTIO_PATH, OPTION_UINPUT_PATH,
         OPTION_HELP
     };
 
@@ -242,6 +245,8 @@ static int options_parse_arguments(int argc, char *argv[], options_t *options)
         {"generate-password",        2, 0,       OPTION_GENERATE_PASSWORD },
         {"display",                  1, 0,       OPTION_DISPLAY },
         {"minimize",                 0, 0,       OPTION_MINIMIZE },
+        {"virtio-path",              1, 0,       OPTION_VIRTIO_PATH },
+        {"uinput-path",              1, 0,       OPTION_UINPUT_PATH },
         {"help",                     0, 0,       OPTION_HELP},
         {0, 0, 0, 0}
     };
@@ -305,6 +310,14 @@ static int options_parse_arguments(int argc, char *argv[], options_t *options)
 
         case OPTION_MINIMIZE:
             options->minimize = 1;
+            break;
+
+        case OPTION_VIRTIO_PATH:
+            str_replace(&options->virtio_path, optarg);
+            break;
+
+        case OPTION_UINPUT_PATH:
+            str_replace(&options->uinput_path, optarg);
             break;
 
         default:

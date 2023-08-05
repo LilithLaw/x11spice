@@ -38,6 +38,7 @@ typedef struct {
 
     int width;
     int height;
+    int monitor_count;
 
     SpiceKbdInstance keyboard_sin;
     uint8_t escape;
@@ -61,9 +62,10 @@ typedef struct {
 /*----------------------------------------------------------------------------
 **  Prototypes
 **--------------------------------------------------------------------------*/
-int spice_start(spice_t *s, options_t *options, shm_image_t *primary);
+int spice_start(spice_t *s, options_t *options, shm_image_t *primary, display_t *display);
 void spice_end(spice_t *s);
-int spice_create_primary(spice_t *s, int w, int h, int bytes_per_line, void *shmaddr);
+int spice_create_primary(spice_t *s, int w, int h, int bytes_per_line, void *shmaddr,
+                         display_t *display);
 void spice_destroy_primary(spice_t *s);
 
 spice_release_t *spice_create_release(spice_t *s, release_type_t type, void *data);

@@ -38,6 +38,7 @@
 #include <xcb/xcb.h>
 #include <xcb/xcb_aux.h>
 #include <xcb/xkb.h>
+#include <xcb/randr.h>
 #include <pixman.h>
 #include <errno.h>
 
@@ -156,6 +157,42 @@ static void handle_damage_notify(display_t *display, xcb_damage_notify_event_t *
     pixman_region_clear(damage_region);
 }
 
+static void get_monitors(display_t *display)
+{
+    xcb_randr_get_monitors_cookie_t cookie;
+    xcb_generic_error_t *error;
+    xcb_randr_get_monitors_reply_t *reply;
+    xcb_randr_monitor_info_iterator_t iter;
+    int i;
+
+    cookie = xcb_randr_get_monitors(display->c, display->root, 1);
+    reply = xcb_randr_get_monitors_reply(display->c, cookie, &error);
+    if (error) {
+        fprintf(stderr,
+                "Error: could not get monitor reply; type %d; code %d; major %d; minor %d\n",
+                error->response_type, error->error_code, error->major_code, error->minor_code);
+        return;
+    }
+    display->monitor_count = xcb_randr_get_monitors_monitors_length(reply);
+    free(display->monitors);
+    display->monitors = calloc(display->monitor_count, sizeof(*(display->monitors)));
+    if (!display->monitors) {
+        fprintf(stderr, "Error: could not allocate %d monitors\n", display->monitor_count);
+        free(reply);
+        return;
+    }
+    iter = xcb_randr_get_monitors_monitors_iterator(reply);
+    for (i = 0; i < display->monitor_count; i++) {
+        display->monitors[i].x = iter.data->x;
+        display->monitors[i].y = iter.data->y;
+        display->monitors[i].width = iter.data->width;
+        display->monitors[i].height = iter.data->height;
+        xcb_randr_monitor_info_next(&iter);
+    }
+    free(reply);
+
+}
+
 static void handle_configure_notify(display_t *display, xcb_configure_notify_event_t *cev)
 {
     if (display->session->options.debug_draws >= DEBUG_DRAWS_BASIC) {
@@ -172,6 +209,7 @@ static void handle_configure_notify(display_t *display, xcb_configure_notify_eve
 
     display->width = cev->width;
     display->height = cev->height;
+    get_monitors(display);
     session_handle_resize(display->session);
 }
 
@@ -480,6 +518,8 @@ int display_open(display_t *d, session_t *session)
         d->shm_cache[i].shmid = -1;
     }
 
+    get_monitors(d);
+
     rc = display_create_screen_images(d);
 
     g_message("Display %s opened", session->options.display ? session->options.display : "");
@@ -762,6 +802,8 @@ void display_close(display_t *d)
     }
     display_destroy_screen_images(d);
     xcb_disconnect(d->c);
+    free(d->monitors);
+    d->monitor_count = 0;
 }
 
 int display_trust_damage(display_t *d)

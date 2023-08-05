@@ -348,7 +348,8 @@ int session_recreate_primary(session_t *s)
     rc = display_create_screen_images(&s->display);
     if (rc == 0) {
         shm_image_t *f = s->display.primary;
-        rc = spice_create_primary(&s->spice, f->w, f->h, f->bytes_per_line, f->segment.shmaddr);
+        rc = spice_create_primary(&s->spice, f->w, f->h, f->bytes_per_line, f->segment.shmaddr,
+                                  &s->display);
     }
 
     g_mutex_unlock(s->lock);
@@ -357,11 +358,13 @@ int session_recreate_primary(session_t *s)
 
 void session_handle_resize(session_t *s)
 {
-    if (s->display.width == s->spice.width && s->display.height == s->spice.height)
+    if (s->display.width == s->spice.width && s->display.height == s->spice.height &&
+        s->display.monitor_count == s->spice.monitor_count)
         return;
 
-    g_debug("resizing from %dx%d to %dx%d",
-            s->spice.width, s->spice.height, s->display.width, s->display.height);
+    g_debug("resizing from %dx%d to %dx%d; monitor_count now %d",
+            s->spice.width, s->spice.height, s->display.width, s->display.height,
+            s->display.monitor_count);
     session_recreate_primary(s);
 }
 

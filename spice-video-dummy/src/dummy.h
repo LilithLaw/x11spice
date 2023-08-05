@@ -40,10 +40,10 @@ void dummy_present_free_vblanks(xf86CrtcPtr crtc);
 
 /* in crtc.c */
 void crtc_config_init(ScrnInfoPtr scrn);
-void crtc_create(ScrnInfoPtr scrn);
+void crtc_create_multiple(ScrnInfoPtr scrn, unsigned int num_crtcs);
 
 /* in output.c */
-void output_pre_init(ScrnInfoPtr scrn);
+void output_pre_init(ScrnInfoPtr scrn, unsigned int num_outputs);
 
 /* globals */
 typedef struct _color {
@@ -63,6 +63,8 @@ typedef struct dummyRec {
     Bool DummyHWCursorShown;
     int cursorX, cursorY;
     int cursorFG, cursorBG;
+
+    int numHeads;
 
     dummy_colors colors[1024];
     Bool (*CreateWindow)(WindowRec * window);   /* wrapped CreateWindow */

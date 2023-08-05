@@ -112,12 +112,14 @@ typedef enum {
     OPTION_SW_CURSOR,
     OPTION_DEVICE_PATH,
     OPTION_ACCEL_METHOD,
+    OPTION_NUM_HEADS,
 } DUMMYOpts;
 
 static const OptionInfoRec DUMMYOptions[] = {
     {OPTION_SW_CURSOR, "SWcursor", OPTV_BOOLEAN, {0}, FALSE},
     {OPTION_DEVICE_PATH, "kmsdev", OPTV_STRING, {0}, FALSE},
     {OPTION_ACCEL_METHOD, "AccelMethod", OPTV_STRING, {0}, FALSE},
+    {OPTION_NUM_HEADS, "NumHeads", OPTV_INTEGER, {0}, FALSE},
     {-1, NULL, OPTV_NONE, {0}, FALSE}
 };
 
@@ -436,10 +438,16 @@ DUMMYPreInit(ScrnInfoPtr pScrn, int flags)
         xf86DrvMsg(pScrn->scrnIndex, X_PROBED, "Max Clock: %d kHz\n", maxClock);
     }
 
-    /* Initialize an output and crtc */
+    /* Initialize outputs and crtcs */
+    dPtr->numHeads = 1;
+    xf86GetOptValInteger(dPtr->Options, OPTION_NUM_HEADS, &dPtr->numHeads);
+    if (dPtr->numHeads < 1 || dPtr->numHeads > 32) {
+        xf86DrvMsg(pScrn->scrnIndex, X_ERROR, "numHeads %d invalid, must be 1-32.\n", dPtr->numHeads);
+        return FALSE;
+    }
     crtc_config_init(pScrn);
-    output_pre_init(pScrn);
-    crtc_create(pScrn);
+    output_pre_init(pScrn, dPtr->numHeads);
+    crtc_create_multiple(pScrn, dPtr->numHeads);
 
     /* If monitor resolution is set on the command line, use it */
     xf86SetDpi(pScrn, 0, 0);
